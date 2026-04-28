@@ -1,0 +1,182 @@
+@model OnlineClearanceSystem.Models.LoginViewModel
+@{
+    ViewData["Title"] = "Login";
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Login – Online Clearance</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: #111;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .auth-frame {
+            width: 900px;
+            min-height: 520px;
+            display: flex;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+        .auth-left {
+            width: 43%;
+            background: #1a4731;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 48px 36px;
+            text-align: center;
+            gap: 20px;
+        }
+        .logo-circle {
+            width: 72px; height: 72px;
+            border-radius: 50%;
+            background: #c9a84c;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 26px; font-weight: 900; color: #1a4731;
+            border: 3px solid rgba(255,255,255,0.25);
+        }
+        .auth-left h2 {
+            font-size: 18px; font-weight: 700;
+            color: white; line-height: 1.4;
+        }
+        .auth-right {
+            flex: 1;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 48px;
+        }
+        .auth-title { font-size: 22px; font-weight: 800; color: #1a1a2e; margin-bottom: 6px; }
+        .auth-sub   { font-size: 13px; color: #888; margin-bottom: 24px; line-height: 1.5; }
+        .form-label-sm { font-size: 12px; font-weight: 600; color: #444; margin-bottom: 5px; display: block; }
+        .form-input {
+            width: 100%; border: 1px solid #d1d5db; border-radius: 6px;
+            padding: 10px 13px; font-size: 13px; font-family: inherit;
+            color: #1a1a2e; outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .form-input:focus {
+            border-color: #1a4731;
+            box-shadow: 0 0 0 3px rgba(26,71,49,0.12);
+        }
+        .btn-login {
+            width: 100%; background: #28a745; color: white;
+            border: none; border-radius: 6px; padding: 12px;
+            font-size: 14px; font-weight: 700; cursor: pointer;
+            font-family: inherit; transition: background 0.2s;
+        }
+        .btn-login:hover { background: #218838; }
+        .alert-danger-sm {
+            background: #fff5f5; border: 1px solid #f5c2c7;
+            border-radius: 6px; padding: 10px 14px;
+            font-size: 13px; color: #842029; margin-bottom: 16px;
+        }
+        .form-check-sm {
+            display: flex; align-items: center; gap: 8px;
+            font-size: 13px; color: #555; cursor: pointer;
+        }
+        .form-check-sm input { accent-color: #28a745; }
+        .field-error { font-size: 11px; color: #dc3545; margin-top: 4px; display: block; }
+        @@media (max-width: 640px) {
+            .auth-frame { flex-direction: column; width: 98vw; }
+            .auth-left  { width: 100%; padding: 32px 24px; }
+            .auth-right { padding: 32px 24px; }
+        }
+    </style>
+</head>
+<body>
+<div class="auth-frame">
+
+    <!-- LEFT PANEL -->
+    <div class="auth-left">
+        <div class="logo-circle"><span>g</span></div>
+        <h2>Cebu Technological University Of Ginatilan – Online Clearance</h2>
+    </div>
+
+    <!-- RIGHT PANEL -->
+    <div class="auth-right">
+        <h2 class="auth-title">Account Login</h2>
+        <p class="auth-sub">
+            If you are already a member you can login with<br/>
+            your ID number and password.
+        </p>
+
+        @if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
+        {
+            <div class="alert-danger-sm">
+                <strong>⚠</strong> @ViewBag.ErrorMessage
+            </div>
+        }
+
+        <form asp-action="Login" asp-controller="Home" method="post" novalidate>
+            @Html.AntiForgeryToken()
+
+            <div style="margin-bottom:16px;">
+                <label class="form-label-sm" asp-for="IdNumber">ID Number</label>
+                <input asp-for="IdNumber"
+                       class="form-input"
+                       type="text"
+                       placeholder="e.g. 7240424"
+                       autocomplete="username" />
+                <span asp-validation-for="IdNumber" class="field-error"></span>
+            </div>
+
+            <div style="margin-bottom:14px;">
+                <label class="form-label-sm" asp-for="Password">Password</label>
+                <input asp-for="Password"
+                       class="form-input"
+                       type="password"
+                       placeholder="Enter your password"
+                       autocomplete="current-password" />
+                <span asp-validation-for="Password" class="field-error"></span>
+            </div>
+
+            <div style="margin-bottom:24px;">
+                <label class="form-check-sm">
+                    <input asp-for="RememberMe" type="checkbox" />
+                    Remember me
+                </label>
+            </div>
+
+            <button type="submit" class="btn-login">Log-in Account</button>
+        </form>
+
+        <p style="text-align:center;font-size:13px;color:#888;margin-top:20px;">
+            Don't have an account? &nbsp;
+            <a href="/Home/Register"
+               style="color:#28a745;font-weight:700;text-decoration:none;">
+                Register here
+            </a>
+        </p>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+document.querySelector('form').addEventListener('submit', function(e) {
+    let valid = true;
+    const id = document.querySelector('input[name="IdNumber"]');
+    const pw = document.querySelector('input[name="Password"]');
+    if (!id.value.trim()) { id.style.borderColor='#dc3545'; valid=false; }
+    else                   { id.style.borderColor=''; }
+    if (!pw.value.trim()) { pw.style.borderColor='#dc3545'; valid=false; }
+    else                   { pw.style.borderColor=''; }
+    if (!valid) e.preventDefault();
+});
+</script>
+</body>
+</html>
