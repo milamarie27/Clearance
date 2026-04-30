@@ -1,0 +1,93 @@
+@model IEnumerable<OnlineClearanceSystem.Models.StudentClearanceItem>
+@{
+    ViewData["Title"]      = "Clearance";
+    ViewData["ActivePage"] = "Clearance";
+    Layout = "~/Views/Shared/_StudentLayout.cshtml";
+}
+
+<div class="welcome-card mb-4">
+    <div>
+        <h4>Welcome,</h4>
+        <h2>@(ViewData["UserName"] ?? "Student")!</h2>
+    </div>
+    <div class="period-box">
+        <div class="period-icon"><i class="fas fa-calendar-alt"></i></div>
+        <div>
+            <div class="period-label">Active Academic Period</div>
+            <div class="period-value">A.Y. 2025-2026, 2nd Semester</div>
+        </div>
+        <span class="active-badge">Active</span>
+    </div>
+</div>
+
+<div class="page-card">
+    <div class="page-card-hd dark">
+        <i class="fas fa-clipboard-list me-2"></i>SUBJECT ENROLLED
+    </div>
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>CODE</th>
+                    <th>SUBJECT</th>
+                    <th>DESCRIPTION</th>
+                    <th>INSTRUCTOR</th>
+                    <th>STATUS</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td><span class="code-badge">@item.MisCode</span></td>
+                            <td style="font-weight:600;">@item.SubjectCode</td>
+                            <td>@item.Description</td>
+                            <td>@item.InstructorName</td>
+                            <td>
+                                @if (item.Status == "Cleared")       { <span class="status-approved">Cleared</span> }
+                                else if (item.Status == "Pending")   { <span class="status-pending">Pending</span> }
+                                else { <button class="btn-request" onclick="requestSignature(this)"><i class="fas fa-paper-plane me-1"></i>Request</button> }
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    @foreach (var row in new[] {
+                        new { code="GT-53", subj="GEC – TCW",  desc="The Contemporary World",                    inst="Ms. Dina Piedad",      status="Cleared" },
+                        new { code="GT-54", subj="PC 223",     desc="Integrative Programming and Technologies 1", inst="Mr. Ian Comision",      status="Cleared" },
+                        new { code="GT-55", subj="PC 224",     desc="Networking 1",                               inst="Mr. Rochell Belvestre", status="None" },
+                        new { code="GT-56", subj="CC 225",     desc="Information Management (Lec)",               inst="Doc. Glicerio Baguia",  status="None" },
+                        new { code="GT-57", subj="CC 225 L",   desc="Information Management (Lab)",               inst="Doc. Glicerio Baguia",  status="None" },
+                        new { code="GT-58", subj="P Elec 3",   desc="Platform Technology",                        inst="Mr. Ian Comision",      status="Cleared" },
+                        new { code="GT-59", subj="AP 3",       desc="ASP .NET",                                   inst="Mr. Ian Comision",      status="Cleared" },
+                        new { code="GT-60", subj="PATHFIT 4",  desc="Physical Activities Towards Health and Fitness", inst="Ms. Sheramae Cadungog", status="Cleared" },
+                    })
+                    {
+                        <tr>
+                            <td><span class="code-badge">@row.code</span></td>
+                            <td style="font-weight:600;">@row.subj</td>
+                            <td>@row.desc</td>
+                            <td>@row.inst</td>
+                            <td>
+                                @if (row.status == "Cleared")      { <span class="status-approved">Cleared</span> }
+                                else if (row.status == "Pending")  { <span class="status-pending">Pending</span> }
+                                else { <button class="btn-request" onclick="requestSignature(this)"><i class="fas fa-paper-plane me-1"></i>Request</button> }
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+function requestSignature(btn) {
+    btn.parentElement.innerHTML = '<span class="status-pending">Pending</span>';
+}
+</script>
+}

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using System.Security.Claims;
 using MySql.Data.MySqlClient;
 using OnlineClearanceSystem.Models;
+using OnlineClearanceSystem.Data;
 
 namespace OnlineClearanceSystem.Controllers
 {
@@ -50,12 +51,12 @@ namespace OnlineClearanceSystem.Controllers
                            last_name, role, is_active
                     FROM users
                     WHERE username = @u LIMIT 1", conn);
-                cmd.Parameters.AddWithValue("@u", model.IdNumber);
+                cmd.Parameters.AddWithValue("@u", model.Username);
 
                 using var r = cmd.ExecuteReader();
                 if (!r.Read())
                 {
-                    ViewBag.ErrorMessage = "Invalid ID number or password.";
+                    ViewBag.ErrorMessage = "Invalid username or password.";
                     return View(model);
                 }
 
@@ -69,8 +70,8 @@ namespace OnlineClearanceSystem.Controllers
                                     : r.GetString("role");
                 r.Close();
 
-                // Account not yet activated by Admin
-                if (!isActive || role == null)
+                // Account pending — role is 'Pending' or not yet activated
+                if (!isActive || role == null || role == "Pending")
                 {
                     ViewBag.ErrorMessage =
                         "Your account is pending activation. " +
@@ -79,14 +80,14 @@ namespace OnlineClearanceSystem.Controllers
                     return View(model);
                 }
 
-                // Verify password (BCrypt or plain)
+                // Verify password
                 bool valid = hash.StartsWith("$2")
                     ? BCrypt.Net.BCrypt.Verify(model.Password, hash)
                     : hash == model.Password;
 
                 if (!valid)
                 {
-                    ViewBag.ErrorMessage = "Invalid ID number or password.";
+                    ViewBag.ErrorMessage = "Invalid username or password.";
                     return View(model);
                 }
 
@@ -132,7 +133,6 @@ namespace OnlineClearanceSystem.Controllers
         }
 
         // ── POST /Home/Register ────────────────────────────────
-        // No role selection — Admin assigns role after registration
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Register(RegisterViewModel model)
@@ -145,38 +145,55 @@ namespace OnlineClearanceSystem.Controllers
                 using var conn = DbHelper.GetConnection(_config);
                 conn.Open();
 
-                // Check duplicate ID number
-                var checkCmd = new MySqlCommand(
+                // Check duplicate username
+                var checkUsername = new MySqlCommand(
                     "SELECT COUNT(*) FROM users WHERE username = @u", conn);
-                checkCmd.Parameters.AddWithValue("@u", model.IdNumber);
-                var exists = Convert.ToInt32(checkCmd.ExecuteScalar()) > 0;
+                checkUsername.Parameters.AddWithValue("@u", model.Username);
+                var usernameExists =
+                    Convert.ToInt32(checkUsername.ExecuteScalar()) > 0;
 
-                if (exists)
+                if (usernameExists)
+                {
+                    ModelState.AddModelError(
+                        nameof(model.Username),
+                        "That username is already taken.");
+                    return View(model);
+                }
+
+                // Check duplicate ID Number
+                var checkId = new MySqlCommand(
+                    "SELECT COUNT(*) FROM users WHERE id_number = @id", conn);
+                checkId.Parameters.AddWithValue("@id", model.IdNumber);
+                var idExists =
+                    Convert.ToInt32(checkId.ExecuteScalar()) > 0;
+
+                if (idExists)
                 {
                     ModelState.AddModelError(
                         nameof(model.IdNumber),
-                        "This ID number is already registered.");
+                        "That ID Number is already registered.");
                     return View(model);
                 }
 
                 // Hash password
                 var hash = BCrypt.Net.BCrypt.HashPassword(model.Password);
 
-                // Save to users table
-                // role     = NULL  → Admin will assign later
-                // is_active = 0   → Admin will activate later
+                // ✅ FIXED: use 'Pending' instead of NULL
                 var cmd = new MySqlCommand(@"
                     INSERT INTO users
-                        (username, password, first_name, last_name,
+                        (username, id_number, password,
+                         first_name, last_name,
                          role, is_active, created_at)
                     VALUES
-                        (@u, @p, @fn, @ln,
-                         NULL, 0, NOW())", conn);
+                        (@u, @idnum, @p,
+                         @fn, @ln,
+                         'Pending', 0, NOW())", conn);
 
-                cmd.Parameters.AddWithValue("@u",  model.IdNumber);
-                cmd.Parameters.AddWithValue("@p",  hash);
-                cmd.Parameters.AddWithValue("@fn", model.FirstName);
-                cmd.Parameters.AddWithValue("@ln", model.LastName);
+                cmd.Parameters.AddWithValue("@u",     model.Username);
+                cmd.Parameters.AddWithValue("@idnum", model.IdNumber);
+                cmd.Parameters.AddWithValue("@p",     hash);
+                cmd.Parameters.AddWithValue("@fn",    model.FirstName.Trim());
+                cmd.Parameters.AddWithValue("@ln",    model.LastName.Trim());
                 cmd.ExecuteNonQuery();
 
                 TempData["RegisterSuccess"] =

@@ -1,0 +1,89 @@
+@model IEnumerable<OnlineClearanceSystem.Models.OrganizationSignatory>
+@{
+    ViewData["Title"]      = "Organization";
+    ViewData["ActivePage"] = "Organization";
+    Layout = "~/Views/Shared/_StudentLayout.cshtml";
+}
+
+<div class="welcome-card mb-4">
+    <div>
+        <h4>Welcome,</h4>
+        <h2>@(ViewData["UserName"] ?? "Student")!</h2>
+    </div>
+    <div class="period-box">
+        <div class="period-icon"><i class="fas fa-calendar-alt"></i></div>
+        <div>
+            <div class="period-label">Active Academic Period</div>
+            <div class="period-value">A.Y. 2025-2026, 2nd Semester</div>
+        </div>
+        <span class="active-badge">Active</span>
+    </div>
+</div>
+
+<div class="page-card">
+    <div class="page-card-hd dark">
+        <i class="fas fa-sitemap me-2"></i>Organization
+    </div>
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th style="width:60px;">#</th>
+                    <th>ORGANIZATION ROLE</th>
+                    <th>PERSON ASSIGNED</th>
+                    <th>STATUS</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    int i = 1;
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td><span class="code-badge">@i</span></td>
+                            <td>@item.OrgRole</td>
+                            <td style="font-weight:600;">@item.PersonName</td>
+                            <td>
+                                @if (item.Status == "Cleared")     { <span class="status-approved">Cleared</span> }
+                                else if (item.Status == "Pending") { <span class="status-pending">Pending</span> }
+                                else { <button class="btn-request" onclick="requestSignature(this)"><i class="fas fa-paper-plane me-1"></i>Request</button> }
+                            </td>
+                        </tr>
+                        i++;
+                    }
+                }
+                else
+                {
+                    @foreach (var row in new[] {
+                        new { role="Organization Treasurer",             person="Ms. Mila Marie Villamor", status="Cleared" },
+                        new { role="Computer Laboratory Representative", person="Mr. John Mark Parangan",  status="Cleared" },
+                        new { role="Organization Adviser",               person="Ms. Sheramae Cadungog",   status="None" },
+                        new { role="Class Adviser",                      person="Mr. Rochell Belvestre",   status="None" },
+                        new { role="Campus Director",                    person="Doc. Glicerio Baguia",    status="None" },
+                    }.Select((r, i) => new { r.role, r.person, r.status, num = i + 1 }))
+                    {
+                        <tr>
+                            <td><span class="code-badge">@row.num</span></td>
+                            <td>@row.role</td>
+                            <td style="font-weight:600;">@row.person</td>
+                            <td>
+                                @if (row.status == "Cleared")      { <span class="status-approved">Cleared</span> }
+                                else if (row.status == "Pending")  { <span class="status-pending">Pending</span> }
+                                else { <button class="btn-request" onclick="requestSignature(this)"><i class="fas fa-paper-plane me-1"></i>Request</button> }
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+function requestSignature(btn) {
+    btn.parentElement.innerHTML = '<span class="status-pending">Pending</span>';
+}
+</script>
+}

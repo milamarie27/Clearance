@@ -55,7 +55,8 @@ namespace OnlineClearanceSystem.Controllers
                     Password  = r.GetString("password"),
                     FirstName = r.GetString("first_name"),
                     LastName  = r.GetString("last_name"),
-                    Role      = r.IsDBNull(r.GetOrdinal("role")) ? null : r.GetString("role"),
+                    // ✅ AFTER
+                    Role = r.IsDBNull(r.GetOrdinal("role")) ? "Pending" : r.GetString("role"), 
                     IsActive  = r.GetBoolean("is_active")
                 };
                 r.Close();

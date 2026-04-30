@@ -13,103 +13,166 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
+
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            background: #111; min-height: 100vh;
+            background: url('/images/ctu-g.jpg') no-repeat center center;
+            background-size: cover;
+            min-height: 100vh;
             display: flex; align-items: center;
-            justify-content: center; padding: 24px 0;
+            justify-content: center; padding: 28px 0;
+            position: relative;
         }
+        body::before {
+            content: '';
+            position: absolute; inset: 0;
+            background: rgba(0,0,0,0.55);
+            backdrop-filter: blur(2px);
+        }
+
         .auth-frame {
-            width: 900px; display: flex;
-            border-radius: 10px; overflow: hidden;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            width: 920px; display: flex;
+            border-radius: 16px; overflow: hidden;
+            box-shadow: 0 24px 80px rgba(0,0,0,0.6);
+            position: relative; z-index: 1;
         }
+
+        /* LEFT */
         .auth-left {
-            width: 40%; background: #1a4731;
+            width: 40%;
+            background: linear-gradient(160deg, #1e5438 0%, #1a4731 50%, #122e1f 100%);
             display: flex; flex-direction: column;
             align-items: center; justify-content: center;
-            padding: 48px 32px; text-align: center; gap: 18px;
+            padding: 52px 32px; text-align: center; gap: 18px;
+            position: relative; overflow: hidden;
         }
+        .auth-left::before {
+            content: '';
+            position: absolute;
+            width: 300px; height: 300px; border-radius: 50%;
+            background: radial-gradient(circle, rgba(201,168,76,0.1) 0%, transparent 70%);
+            top: -80px; right: -80px;
+        }
+
         .logo-circle {
-            width: 72px; height: 72px; border-radius: 50%;
-            background: #c9a84c;
+            width: 80px; height: 80px; border-radius: 50%;
+            background: linear-gradient(135deg, #d4b060, #c9a84c, #b8922e);
             display: flex; align-items: center; justify-content: center;
-            font-size: 26px; font-weight: 900; color: #1a4731;
-            border: 3px solid rgba(255,255,255,0.25);
+            border: 3px solid rgba(255,255,255,0.2);
+            box-shadow: 0 8px 32px rgba(201,168,76,0.4),
+                        0 0 0 8px rgba(201,168,76,0.08);
+            overflow: hidden;
+            position: relative; z-index: 1;
         }
+
         .auth-left h2 {
-            font-size: 17px; font-weight: 700;
-            color: white; line-height: 1.4;
+            font-size: 16px; font-weight: 700;
+            color: white; line-height: 1.5;
+            position: relative; z-index: 1;
         }
         .auth-left p {
-            font-size: 12px; color: rgba(255,255,255,0.6);
-            line-height: 1.6;
+            font-size: 12px; color: rgba(255,255,255,0.55);
+            line-height: 1.7;
+            position: relative; z-index: 1;
+        }
+        .left-divider {
+            width: 40px; height: 2px;
+            background: linear-gradient(90deg, transparent, #c9a84c, transparent);
+            border-radius: 2px;
+            position: relative; z-index: 1;
         }
         .notice-box {
-            background: rgba(255,255,255,0.1);
-            border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 8px; padding: 12px 16px;
-            font-size: 12px; color: rgba(255,255,255,0.85);
-            line-height: 1.6; text-align: left;
+            background: rgba(255,255,255,0.07);
+            border: 1px solid rgba(201,168,76,0.25);
+            border-radius: 10px; padding: 14px 16px;
+            font-size: 12px; color: rgba(255,255,255,0.75);
+            line-height: 1.7; text-align: left;
+            position: relative; z-index: 1;
         }
         .notice-box strong { color: #c9a84c; }
+
+        /* RIGHT */
         .auth-right {
-            flex: 1; background: white;
+            flex: 1; background: #ffffff;
             padding: 40px 44px;
             display: flex; flex-direction: column;
             justify-content: center; position: relative;
         }
+
         .back-link {
             position: absolute; top: 18px; left: 22px;
-            font-size: 13px; color: #555;
+            font-size: 13px; color: #9ca3af;
             text-decoration: none; font-weight: 500;
+            display: flex; align-items: center; gap: 4px;
+            transition: color 0.2s;
         }
         .back-link:hover { color: #1a4731; }
+
         .auth-title {
-            font-size: 21px; font-weight: 800;
-            color: #1a1a2e; margin-bottom: 4px;
-            margin-top: 22px;
+            font-size: 22px; font-weight: 800;
+            color: #111827; margin-bottom: 4px;
+            margin-top: 22px; letter-spacing: -0.3px;
         }
         .auth-sub {
-            font-size: 13px; color: #888;
-            margin-bottom: 22px; line-height: 1.5;
+            font-size: 13px; color: #9ca3af;
+            margin-bottom: 20px; line-height: 1.6;
         }
+
         .form-label-sm {
             font-size: 12px; font-weight: 600;
-            color: #444; margin-bottom: 4px; display: block;
+            color: #374151; margin-bottom: 5px;
+            display: block; letter-spacing: 0.3px;
         }
-        .req { color: #dc3545; }
+        .req { color: #dc2626; }
+
         .form-input {
-            width: 100%; border: 1px solid #d1d5db;
-            border-radius: 6px; padding: 10px 13px;
+            width: 100%;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 8px; padding: 10px 13px;
             font-size: 13px; font-family: inherit;
-            color: #1a1a2e; outline: none;
-            transition: border-color 0.2s, box-shadow 0.2s;
+            color: #111827; outline: none;
+            background: #f9fafb;
+            transition: all 0.2s;
         }
         .form-input:focus {
             border-color: #1a4731;
+            background: #fff;
             box-shadow: 0 0 0 3px rgba(26,71,49,0.1);
         }
+
         .field-error {
-            font-size: 11px; color: #dc3545;
+            font-size: 11px; color: #dc2626;
             margin-top: 3px; display: block;
         }
         .alert-danger-sm {
-            background: #fff5f5; border: 1px solid #f5c2c7;
-            border-radius: 6px; padding: 10px 14px;
-            font-size: 13px; color: #842029; margin-bottom: 14px;
+            background: #fef2f2;
+            border: 1.5px solid #fecaca;
+            border-radius: 8px; padding: 11px 14px;
+            font-size: 13px; color: #dc2626;
+            margin-bottom: 14px;
+            display: flex; align-items: center; gap: 8px;
         }
+
         .btn-register {
-            width: 100%; background: #28a745; color: white;
-            border: none; border-radius: 6px; padding: 12px;
+            width: 100%;
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            color: white; border: none;
+            border-radius: 8px; padding: 13px;
             font-size: 14px; font-weight: 700;
             cursor: pointer; font-family: inherit;
-            transition: background 0.2s; margin-top: 20px;
+            transition: all 0.25s; margin-top: 18px;
+            box-shadow: 0 4px 14px rgba(34,197,94,0.35);
+            letter-spacing: 0.3px;
         }
-        .btn-register:hover { background: #218838; }
+        .btn-register:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(34,197,94,0.45);
+        }
+        .btn-register:active { transform: translateY(0); }
+
         @@media (max-width: 640px) {
-            .auth-frame { flex-direction: column; width: 98vw; }
-            .auth-left  { width: 100%; padding: 28px; }
+            .auth-frame { flex-direction: column; width: 96vw; }
+            .auth-left  { width: 100%; padding: 32px 24px; }
             .auth-right { padding: 28px; }
         }
     </style>
@@ -119,17 +182,19 @@
 
     <!-- LEFT -->
     <div class="auth-left">
-        <div class="logo-circle"><span>g</span></div>
-        <h2>CTU – Ginatilan Online Clearance</h2>
+        <div class="logo-circle">
+            <img src="/images/CTUG-logo-transparent.png" alt="Logo"
+                 style="width:100%; height:100%; object-fit:cover;">
+        </div>
+        <div class="left-divider"></div>
+        <h2>Cebu Technological University - Ginatilan Extension Campus – Online Clearance</h2>
         <p>Create your account to get started.<br/>
            Your access will be activated by the Admin.</p>
-
         <div class="notice-box">
             <strong>Note:</strong> After registering, your account
             will be reviewed by the Admin who will assign your role
             (Student or Instructor) and activate your account.
-            You will not be able to log in until your account
-            is activated.
+            You will not be able to log in until your account is activated.
         </div>
     </div>
 
@@ -143,36 +208,25 @@
             The Admin will assign your role after registration.
         </p>
 
-        @if (!ViewData.ModelState.IsValid &&
-             ViewData.ModelState.ErrorCount > 0)
+        @if (!ViewData.ModelState.IsValid && ViewData.ModelState.ErrorCount > 0)
         {
-            <div class="alert-danger-sm">
-                ⚠ Please correct the errors below.
-            </div>
+            <div class="alert-danger-sm">⚠ Please correct the errors below.</div>
         }
-
         @if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
         {
-            <div class="alert-danger-sm">
-                ⚠ @ViewBag.ErrorMessage
-            </div>
+            <div class="alert-danger-sm">⚠ @ViewBag.ErrorMessage</div>
         }
 
-        <form asp-action="Register" asp-controller="Home"
-              method="post" novalidate>
+        <form asp-action="Register" asp-controller="Home" method="post" novalidate>
             @Html.AntiForgeryToken()
-
             <div class="row g-3">
 
                 <!-- Name row -->
                 <div class="col-md-5">
-                    <label class="form-label-sm">
-                        First Name <span class="req">*</span>
-                    </label>
+                    <label class="form-label-sm">First Name <span class="req">*</span></label>
                     <input asp-for="FirstName" class="form-input"
                            placeholder="First name" autofocus/>
-                    <span asp-validation-for="FirstName"
-                          class="field-error"></span>
+                    <span asp-validation-for="FirstName" class="field-error"></span>
                 </div>
                 <div class="col-md-2">
                     <label class="form-label-sm">M.I.</label>
@@ -180,69 +234,54 @@
                            placeholder="M.I." maxlength="3"/>
                 </div>
                 <div class="col-md-5">
-                    <label class="form-label-sm">
-                        Last Name <span class="req">*</span>
-                    </label>
-                    <input asp-for="LastName" class="form-input"
-                           placeholder="Last name"/>
-                    <span asp-validation-for="LastName"
-                          class="field-error"></span>
+                    <label class="form-label-sm">Last Name <span class="req">*</span></label>
+                    <input asp-for="LastName" class="form-input" placeholder="Last name"/>
+                    <span asp-validation-for="LastName" class="field-error"></span>
                 </div>
 
-                <!-- ID Number -->
-                <div class="col-12">
-                    <label class="form-label-sm">
-                        ID Number <span class="req">*</span>
-                    </label>
+                <!-- ID Number + Username -->
+                <div class="col-md-6">
+                    <label class="form-label-sm">ID Number <span class="req">*</span></label>
                     <input asp-for="IdNumber" class="form-input"
                            placeholder="e.g. 2024-00001"/>
-                    <span asp-validation-for="IdNumber"
-                          class="field-error"></span>
+                    <span asp-validation-for="IdNumber" class="field-error"></span>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label-sm">Username <span class="req">*</span></label>
+                    <input asp-for="Username" class="form-input"
+                           placeholder="Choose a username"/>
+                    <span asp-validation-for="Username" class="field-error"></span>
                 </div>
 
-                <!-- Password -->
+                <!-- Password row -->
                 <div class="col-md-6">
-                    <label class="form-label-sm">
-                        Password <span class="req">*</span>
-                    </label>
+                    <label class="form-label-sm">Password <span class="req">*</span></label>
                     <input asp-for="Password" class="form-input"
-                           type="password"
-                           placeholder="Min. 6 characters"
+                           type="password" placeholder="Min. 6 characters"
                            autocomplete="new-password"/>
-                    <span asp-validation-for="Password"
-                          class="field-error"></span>
+                    <span asp-validation-for="Password" class="field-error"></span>
                 </div>
                 <div class="col-md-6">
-                    <label class="form-label-sm">
-                        Confirm Password <span class="req">*</span>
-                    </label>
+                    <label class="form-label-sm">Confirm Password <span class="req">*</span></label>
                     <input asp-for="ConfirmPassword" class="form-input"
-                           type="password"
-                           placeholder="Repeat password"
-                           id="cpw"
-                           autocomplete="new-password"/>
-                    <span asp-validation-for="ConfirmPassword"
-                          class="field-error"></span>
+                           type="password" placeholder="Repeat password"
+                           id="cpw" autocomplete="new-password"/>
+                    <span asp-validation-for="ConfirmPassword" class="field-error"></span>
                 </div>
 
             </div>
 
-            <button type="submit" class="btn-register">
-                Register Account
-            </button>
+            <button type="submit" class="btn-register">Register Account</button>
         </form>
 
-        <p style="text-align:center;font-size:13px;
-                  color:#888;margin-top:16px;">
+        <p style="text-align:center;font-size:13px;color:#9ca3af;margin-top:16px;">
             Already have an account? &nbsp;
             <a href="/Home/Login"
-               style="color:#28a745;font-weight:700;
-                      text-decoration:none;">
+               style="color:#16a34a;font-weight:700;text-decoration:none;">
                 Log in here
             </a>
         </p>
     </div>
-
 </div>
 
 <script>
@@ -250,7 +289,7 @@ document.querySelector('form').addEventListener('submit', function(e) {
     const pw  = document.querySelector('input[name="Password"]');
     const cpw = document.getElementById('cpw');
     if (pw && cpw && pw.value !== cpw.value) {
-        cpw.style.borderColor = '#dc3545';
+        cpw.style.borderColor = '#dc2626';
         e.preventDefault();
     } else if (cpw) {
         cpw.style.borderColor = '';

@@ -1,0 +1,139 @@
+@model OnlineClearanceSystem.Models.StudentClearancePdfViewModel
+@{
+    ViewData["Title"]      = "Download PDF";
+    ViewData["ActivePage"] = "DownloadPdf";
+    Layout = "~/Views/Shared/_StudentLayout.cshtml";
+}
+
+<div class="d-flex align-items-center justify-content-between mb-3">
+    <h5 class="fw-bold mb-0" style="color:#1a1a2e;">Download Clearance PDF</h5>
+    <button class="btn-green" onclick="window.print()" style="padding:9px 22px;">
+        <i class="fas fa-print me-2"></i>Print / Download
+    </button>
+</div>
+
+<div style="background:white;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,0.1);overflow:hidden;" id="pdf-preview">
+    <div id="clearance-doc" style="padding:32px 48px;max-width:740px;margin:0 auto;font-family:'Times New Roman',serif;">
+
+        <!-- HEADER -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+            <div style="width:70px;height:70px;border-radius:50%;background:#7a1515;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;">
+                <img src="/images/Cebu_Technological_University_Logo.png" alt="CTU Seal" style="width:100%;height:100%;object-fit:cover;">
+            </div>
+            <div style="text-align:center;flex:1;padding:0 16px;">
+                <div style="font-size:11px;color:#333;">Republic of the Philippines</div>
+                <div style="font-size:14px;font-weight:700;color:#111;">CEBU TECHNOLOGICAL UNIVERSITY</div>
+                <div style="font-size:12px;font-weight:600;">GINATILAN EXTENSION CAMPUS</div>
+                <div style="font-size:10px;color:#555;">Ginatilan, Cebu</div>
+            </div>
+            <div style="width:70px;height:70px;flex-shrink:0;display:flex;align-items:center;justify-content:center;">
+                <img src="/images/Bagong_Pilipinas_logo.png" alt="Bagong Pilipinas" style="width:60px;height:60px;object-fit:contain;">
+            </div>
+        </div>
+
+        <hr style="border:2px solid #333;margin:10px 0 4px;" />
+        <hr style="border:1px solid #333;margin:0 0 18px;" />
+
+        <div style="text-align:center;margin-bottom:24px;">
+            <h2 style="font-size:20px;font-weight:900;letter-spacing:1px;margin:0;">DEPARTMENTAL<br />CLEARANCE</h2>
+        </div>
+
+        <!-- STUDENT INFO -->
+        <table style="width:100%;border-collapse:collapse;margin-bottom:18px;font-size:13px;">
+            <tr>
+                <td style="padding:3px 0;width:140px;color:#555;">Student Name:</td>
+                <td style="padding:3px 8px;border-bottom:1px solid #333;font-weight:700;">@(Model?.StudentName ?? "")</td>
+                <td style="padding:3px 0 3px 24px;width:110px;color:#555;">Student ID:</td>
+                <td style="padding:3px 8px;border-bottom:1px solid #333;font-weight:700;">@(Model?.StudentId ?? "")</td>
+            </tr>
+            <tr>
+                <td style="padding:6px 0;color:#555;">Course & Year:</td>
+                <td style="padding:6px 8px;border-bottom:1px solid #333;font-weight:700;">@(Model?.CourseYear ?? "")</td>
+                <td style="padding:6px 0 6px 24px;color:#555;">A.Y. / Sem:</td>
+                <td style="padding:6px 8px;border-bottom:1px solid #333;font-weight:700;">2025-2026 / 2nd</td>
+            </tr>
+        </table>
+
+        <!-- SUBJECT CLEARANCES -->
+        <div style="font-size:12px;font-weight:700;margin-bottom:6px;text-decoration:underline;">SUBJECT CLEARANCES</div>
+        <table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:18px;">
+            <thead>
+                <tr style="background:#1a4731;color:white;">
+                    <th style="padding:7px 10px;text-align:left;">Code</th>
+                    <th style="padding:7px 10px;text-align:left;">Subject</th>
+                    <th style="padding:7px 10px;text-align:left;">Description</th>
+                    <th style="padding:7px 10px;text-align:left;">Instructor</th>
+                    <th style="padding:7px 10px;text-align:center;">Signature</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var row in new[] {
+                    new { code="GT-53", subj="GEC – TCW",  desc="The Contemporary World",                    inst="Ms. Dina Piedad" },
+                    new { code="GT-54", subj="PC 223",     desc="Integrative Programming and Technologies 1", inst="Mr. Ian Comision" },
+                    new { code="GT-55", subj="PC 224",     desc="Networking 1",                               inst="Mr. Rochell Belvestre" },
+                    new { code="GT-56", subj="CC 225",     desc="Information Management (Lec)",               inst="Doc. Glicerio Baguia" },
+                    new { code="GT-57", subj="CC 225 L",   desc="Information Management (Lab)",               inst="Doc. Glicerio Baguia" },
+                    new { code="GT-58", subj="P Elec 3",   desc="Platform Technology",                        inst="Mr. Ian Comision" },
+                    new { code="GT-59", subj="AP 3",       desc="ASP .NET",                                   inst="Mr. Ian Comision" },
+                    new { code="GT-60", subj="PATHFIT 4",  desc="Physical Activities Towards Health and Fitness", inst="Ms. Sheramae Cadungog" },
+                })
+                {
+                    <tr style="border-bottom:1px solid #dee2e6;">
+                        <td style="padding:6px 10px;">@row.code</td>
+                        <td style="padding:6px 10px;">@row.subj</td>
+                        <td style="padding:6px 10px;">@row.desc</td>
+                        <td style="padding:6px 10px;">@row.inst</td>
+                        <td style="padding:6px 10px;text-align:center;border-bottom:1px solid #333;min-width:100px;">&nbsp;</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <!-- ORGANIZATION CLEARANCES -->
+        <div style="font-size:12px;font-weight:700;margin-bottom:6px;text-decoration:underline;">ORGANIZATION CLEARANCES</div>
+        <table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:24px;">
+            <thead>
+                <tr style="background:#1a4731;color:white;">
+                    <th style="padding:7px 10px;text-align:left;">#</th>
+                    <th style="padding:7px 10px;text-align:left;">Role</th>
+                    <th style="padding:7px 10px;text-align:left;">Person</th>
+                    <th style="padding:7px 10px;text-align:center;">Signature</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var row in new[] {
+                    new { num=1, role="Organization Treasurer",             person="Ms. Mila Marie Villamor" },
+                    new { num=2, role="Computer Laboratory Representative", person="Mr. John Mark Parangan" },
+                    new { num=3, role="Organization Adviser",               person="Ms. Sheramae Cadungog" },
+                    new { num=4, role="Class Adviser",                      person="Mr. Rochell Belvestre" },
+                    new { num=5, role="Campus Director",                    person="Doc. Glicerio Baguia" },
+                })
+                {
+                    <tr style="border-bottom:1px solid #dee2e6;">
+                        <td style="padding:6px 10px;">@row.num</td>
+                        <td style="padding:6px 10px;">@row.role</td>
+                        <td style="padding:6px 10px;">@row.person</td>
+                        <td style="padding:6px 10px;text-align:center;border-bottom:1px solid #333;min-width:100px;">&nbsp;</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <div style="font-size:11px;color:#555;text-align:center;font-style:italic;margin-top:12px;">
+            This clearance is valid for Academic Year 2025-2026, 2nd Semester only.
+            Cebu Technological University – Ginatilan Extension Campus · All rights reserved.
+        </div>
+    </div>
+</div>
+
+@section Styles {
+<style>
+@@media print {
+    .top-header, .sidebar, .d-flex.align-items-center.justify-content-between.mb-3 { display: none !important; }
+    .main { padding: 0 !important; }
+    #pdf-preview { box-shadow: none; border-radius: 0; }
+    body { background: white; }
+    .layout { display: block; }
+}
+</style>
+}

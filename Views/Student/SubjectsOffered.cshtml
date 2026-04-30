@@ -1,0 +1,184 @@
+@model OnlineClearanceSystem.Models.SubjectOfferedViewModel
+@{
+    ViewData["Title"]      = "Subjects Offered";
+    ViewData["ActivePage"] = "SubjectsOffered";
+    Layout = "~/Views/Shared/_StudentLayout.cshtml";
+}
+
+<!-- STEP 1: SELECT -->
+<div id="step-select">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <h5 class="fw-bold mb-0" style="color:#1a1a2e;">Subjects Offered</h5>
+        <span class="semester-badge"><i class="fas fa-calendar-alt me-2"></i>2nd Semester · A.Y. 2025-2026</span>
+    </div>
+
+    <div class="page-card">
+        <div class="page-card-hd dark">
+            <i class="fas fa-book-open me-2"></i>Available Subjects — Select yours
+        </div>
+
+        <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;">
+            <div style="position:relative;flex:1;max-width:380px;">
+                <i class="fas fa-search" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#aaa;font-size:13px;"></i>
+                <input type="text" id="subject-search" placeholder="Search by code, subject, description or instructor..."
+                    oninput="filterSubjects(this.value)"
+                    style="width:100%;padding:8px 12px 8px 34px;border:1px solid #dee2e6;border-radius:8px;font-size:13px;font-family:inherit;outline:none;" />
+            </div>
+            <span id="search-count" style="font-size:12px;color:#888;white-space:nowrap;"></span>
+        </div>
+
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th style="width:40px;"></th>
+                        <th>CODE</th>
+                        <th>SUBJECT</th>
+                        <th>DESCRIPTION</th>
+                        <th>INSTRUCTOR</th>
+                    </tr>
+                </thead>
+                <tbody id="subject-tbody">
+                    @if (Model?.AvailableSubjects != null && Model.AvailableSubjects.Any())
+                    {
+                        @foreach (var s in Model.AvailableSubjects)
+                        {
+                            <tr class="subject-row" data-code="@s.MisCode.ToLower()" data-subj="@s.SubjectCode.ToLower()" data-desc="@s.Description.ToLower()" data-inst="@s.InstructorName.ToLower()">
+                                <td><input type="checkbox" class="subject-check" value="@s.Id" /></td>
+                                <td><span class="code-badge">@s.MisCode</span></td>
+                                <td style="font-weight:600;">@s.SubjectCode</td>
+                                <td>@s.Description</td>
+                                <td>@s.InstructorName</td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        @foreach (var row in new[] {
+                            new { code="GT-53", subj="GEC – TCW",  desc="The Contemporary World",                    inst="Ms. Dina Piedad" },
+                            new { code="GT-54", subj="PC 223",     desc="Integrative Programming and Technologies 1", inst="Mr. Ian Comision" },
+                            new { code="GT-55", subj="PC 224",     desc="Networking 1",                               inst="Mr. Rochell Belvestre" },
+                            new { code="GT-56", subj="CC 225",     desc="Information Management (Lec)",               inst="Doc. Glicerio Baguia" },
+                            new { code="GT-57", subj="CC 225 L",   desc="Information Management (Lab)",               inst="Doc. Glicerio Baguia" },
+                            new { code="GT-58", subj="P Elec 3",   desc="Platform Technology",                        inst="Mr. Ian Comision" },
+                            new { code="GT-59", subj="AP 3",       desc="ASP .NET",                                   inst="Mr. Ian Comision" },
+                            new { code="GT-60", subj="PATHFIT 4",  desc="Physical Activities Towards Fitness 4",      inst="Ms. Sheramae Cadungog" },
+                        })
+                        {
+                            <tr class="subject-row" data-code="@row.code.ToLower()" data-subj="@row.subj.ToLower()" data-desc="@row.desc.ToLower()" data-inst="@row.inst.ToLower()">
+                                <td><input type="checkbox" class="subject-check" value="@row.code" /></td>
+                                <td><span class="code-badge">@row.code</span></td>
+                                <td style="font-weight:600;">@row.subj</td>
+                                <td>@row.desc</td>
+                                <td>@row.inst</td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+            <div id="no-results" style="display:none;padding:24px;text-align:center;color:#888;font-size:13px;">
+                <i class="fas fa-search me-2"></i>No subjects found.
+            </div>
+        </div>
+
+        <div style="padding:16px 20px;border-top:1px solid var(--border);text-align:right;">
+            <button class="btn-green" onclick="showConfirmStep()">
+                <i class="fas fa-arrow-right me-2"></i>Proceed to Confirm
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- STEP 2: CONFIRM -->
+<div id="step-confirm" style="display:none;">
+    <div class="page-card">
+        <div style="padding:18px 20px;text-align:center;font-size:14px;font-weight:500;color:#333;border-bottom:1px solid var(--border);">
+            <i class="fas fa-question-circle me-2" style="color:#1a4731;"></i>
+            Are you sure these are all the subjects you're enrolled in this semester?
+        </div>
+        <div class="page-card-hd" style="font-size:14px;">Selected Subjects</div>
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr><th>CODE</th><th>SUBJECT</th><th>DESCRIPTION</th><th>INSTRUCTOR</th><th>ACTION</th></tr>
+                </thead>
+                <tbody id="confirm-body"></tbody>
+            </table>
+        </div>
+        <div style="padding:16px 20px;background:#f8f9fa;display:flex;gap:12px;justify-content:space-between;">
+            <button class="btn-dark" onclick="backToSelect()">
+                <i class="fas fa-arrow-left me-2"></i>BACK
+            </button>
+            <form asp-action="ConfirmSubjects" asp-controller="Student" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="selectedSubjects" id="selected-hidden" />
+                <button type="submit" class="btn-green" onclick="prepareSubmit()">YES &nbsp;→</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    const subjectData = {
+        'GT-53': { subj:'GEC – TCW',  desc:'The Contemporary World',                    inst:'Ms. Dina Piedad' },
+        'GT-54': { subj:'PC 223',     desc:'Integrative Programming and Technologies 1', inst:'Mr. Ian Comision' },
+        'GT-55': { subj:'PC 224',     desc:'Networking 1',                               inst:'Mr. Rochell Belvestre' },
+        'GT-56': { subj:'CC 225',     desc:'Information Management (Lec)',               inst:'Doc. Glicerio Baguia' },
+        'GT-57': { subj:'CC 225 L',   desc:'Information Management (Lab)',               inst:'Doc. Glicerio Baguia' },
+        'GT-58': { subj:'P Elec 3',   desc:'Platform Technology',                        inst:'Mr. Ian Comision' },
+        'GT-59': { subj:'AP 3',       desc:'ASP .NET',                                   inst:'Mr. Ian Comision' },
+        'GT-60': { subj:'PATHFIT 4',  desc:'Physical Activities Towards Fitness 4',      inst:'Ms. Sheramae Cadungog' },
+    };
+
+    function filterSubjects(query) {
+        const q = query.toLowerCase().trim();
+        let count = 0;
+        document.querySelectorAll('.subject-row').forEach(row => {
+            const match = !q || row.dataset.code.includes(q) || row.dataset.subj.includes(q)
+                             || row.dataset.desc.includes(q) || row.dataset.inst.includes(q);
+            row.style.display = match ? '' : 'none';
+            if (match) count++;
+        });
+        document.getElementById('search-count').textContent = q ? `${count} result${count !== 1 ? 's' : ''} found` : '';
+        document.getElementById('no-results').style.display = count === 0 ? 'block' : 'none';
+    }
+
+    function showConfirmStep() {
+        const selected = [...document.querySelectorAll('.subject-check:checked')].map(c => c.value);
+        if (!selected.length) { alert('Please select at least one subject.'); return; }
+        const tbody = document.getElementById('confirm-body');
+        tbody.innerHTML = '';
+        selected.forEach(code => {
+            const d = subjectData[code] || { subj: code, desc: '—', inst: '—' };
+            tbody.innerHTML += `<tr id="row-${code}">
+                <td><span class="code-badge">${code}</span></td>
+                <td style="font-weight:600;">${d.subj}</td>
+                <td>${d.desc}</td>
+                <td>${d.inst}</td>
+                <td><button type="button" onclick="removeRow('${code}')" style="background:none;border:none;cursor:pointer;color:#dc3545;font-size:18px;"><i class="fas fa-times-circle"></i></button></td>
+            </tr>`;
+        });
+        document.getElementById('step-select').style.display = 'none';
+        document.getElementById('step-confirm').style.display = 'block';
+    }
+
+    function removeRow(code) {
+        document.getElementById('row-' + code)?.remove();
+        const cb = document.querySelector(`.subject-check[value="${code}"]`);
+        if (cb) cb.checked = false;
+    }
+
+    function backToSelect() {
+        document.getElementById('step-select').style.display = 'block';
+        document.getElementById('step-confirm').style.display = 'none';
+        document.getElementById('subject-search').value = '';
+        filterSubjects('');
+    }
+
+    function prepareSubmit() {
+        const codes = [...document.querySelectorAll('#confirm-body tr')].map(r => r.id.replace('row-', ''));
+        document.getElementById('selected-hidden').value = codes.join(',');
+    }
+</script>
+}
