@@ -18,7 +18,7 @@ namespace OnlineClearanceSystem.Models
     public class UserManagementItem
     {
         public int    Id        { get; set; }
-        public string Username  { get; set; } = "";
+        public string Email     { get; set; } = "";
         public string FullName  { get; set; } = "";
         public string IdNumber  { get; set; } = "";
         public string Role      { get; set; } = "";
@@ -65,7 +65,7 @@ namespace OnlineClearanceSystem.Models
     {
         public int    Id         { get; set; }
         public string Name       { get; set; } = "";
-        public string Username   { get; set; } = "";
+        public string Email      { get; set; } = "";
         public string EmployeeId { get; set; } = "—";
         public string Position   { get; set; } = "—";
         public int    Approved   { get; set; }
@@ -76,7 +76,7 @@ namespace OnlineClearanceSystem.Models
     {
         public int    Id         { get; set; }
         public string Name       { get; set; } = "";
-        public string Username   { get; set; } = "";
+        public string Email      { get; set; } = "";
         public string EmployeeId { get; set; } = "—";
         public int    Subjects   { get; set; }
     }

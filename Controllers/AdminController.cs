@@ -75,7 +75,7 @@ namespace OnlineClearanceSystem.Controllers
                 {
                     students    = GetCount(conn, "SELECT COUNT(*) FROM users WHERE role='Student' AND is_active=1"),
                     instructors = GetCount(conn, "SELECT COUNT(*) FROM users WHERE role='Instructor' AND is_active=1"),
-                    staff       = GetCount(conn, "SELECT COUNT(*) FROM users WHERE role='Admin' AND is_active=1"),
+                    staff       = GetCount(conn, "SELECT COUNT(*) FROM users WHERE role IN ('Staff','Admin') AND is_active=1"),
                     signatories = GetCount(conn, "SELECT COUNT(*) FROM signatories")
                 });
             }
@@ -757,9 +757,9 @@ public IActionResult GetInstructors()
         conn.Open();
         var cmd = new MySqlCommand(@"
             SELECT id,
-                   CONCAT(first_name, ' ', last_name) AS name,
-                   COALESCE(id_number, '—')           AS employeeId,
-                   created_at                         AS joinedDate
+                   COALESCE(CONCAT(first_name,' ',last_name), email) AS name,
+                   id_number,
+                   created_at AS joinedDate
             FROM users
             WHERE role = 'Instructor' AND is_active = 1
             ORDER BY first_name", conn);
@@ -767,9 +767,9 @@ public IActionResult GetInstructors()
         while (r.Read())
             items.Add(new {
                 id         = r.GetInt32("id"),
-                name       = r.GetString("name"),
-                employeeId = r.GetString("employeeId"),
-                joinedDate = r.GetDateTime("joinedDate").ToString("MMMM d, yyyy")
+                name       = r.IsDBNull(r.GetOrdinal("name"))      ? "" : r.GetString("name"),
+                employeeId = r.IsDBNull(r.GetOrdinal("id_number")) ? "" : r.GetString("id_number"),
+                joinedDate = r.IsDBNull(r.GetOrdinal("joinedDate")) ? "" : r.GetDateTime("joinedDate").ToString("MMM d, yyyy")
             });
     }
     catch (Exception ex) { return Ok(new { error = ex.Message }); }
@@ -961,37 +961,28 @@ public IActionResult DeleteStudentSignatory(int id)
             {
                 using var conn = DbHelper.GetConnection(_config);
                 conn.Open();
-                var cmd = new MySqlCommand(@"
-                    SELECT
-                        u.id,
-                        CONCAT(u.first_name,' ',u.last_name) AS name,
-                        u.username,
-                        COALESCE(sig.employee_id,'—')         AS employeeId,
-                        COALESCE(o.position_title,'—')         AS position,
-                        SUM(CASE WHEN co.status=2 THEN 1 ELSE 0 END) AS approved,
-                        SUM(CASE WHEN co.status=1 THEN 1 ELSE 0 END) AS pending
-                    FROM users u
-                    LEFT JOIN signatories sig ON sig.user_id = u.id
-                    LEFT JOIN organizations o ON o.org_signatory = sig.employee_id
-                    LEFT JOIN clearance_organization co ON co.org_signatory = sig.employee_id
-                    WHERE u.role = 'Instructor' AND u.is_active = 1
-                    GROUP BY u.id, u.first_name, u.last_name, u.username,
-                             sig.employee_id, o.position_title
-                    ORDER BY u.first_name", conn);
+                var cmd = new MySqlCommand(
+                    "SELECT id, email, role FROM users WHERE role IN ('Staff','Admin') AND is_active=1 ORDER BY email",
+                    conn);
                 using var r = cmd.ExecuteReader();
                 while (r.Read())
                     items.Add(new
                     {
-                        id         = r.GetInt32("id"),
-                        name       = r.GetString("name"),
-                        username   = r.GetString("username"),
-                        employeeId = r.IsDBNull(r.GetOrdinal("employeeId")) ? "—"   : r.GetString("employeeId"),
-                        position   = r.IsDBNull(r.GetOrdinal("position"))   ? null  : r.GetString("position"),
-                        approved   = r.IsDBNull(r.GetOrdinal("approved"))   ? 0     : Convert.ToInt32(r["approved"]),
-                        pending    = r.IsDBNull(r.GetOrdinal("pending"))    ? 0     : Convert.ToInt32(r["pending"])
+                        id         = r.GetInt32(0),
+                        name       = r.IsDBNull(1) ? "" : r.GetString(1),
+                        email      = r.IsDBNull(1) ? "" : r.GetString(1),
+                        employeeId = "",
+                        position   = (string?)null,
+                        approved   = 0,
+                        pending    = 0
                     });
             }
-            catch { }
+            catch (Exception ex)
+            {
+                return Ok(new[] { new { id = 0, name = "ERROR: " + ex.Message,
+                    email = "error", employeeId = "", position = (string?)null,
+                    approved = 0, pending = 0 } });
+            }
             return Ok(items);
         }
 

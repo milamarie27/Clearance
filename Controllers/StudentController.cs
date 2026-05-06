@@ -27,7 +27,7 @@ namespace OnlineClearanceSystem.Controllers
 
             var model = new StudentDashboardViewModel
             {
-                StudentName       = ViewData["UserName"]?.ToString() ?? "Student",
+                StudentName       = ViewData["Email"]?.ToString() ?? "Student",
                 SubjectCleared    = 0,
                 SubjectIncomplete = 0,
                 OrgCleared        = 0,
@@ -438,7 +438,7 @@ namespace OnlineClearanceSystem.Controllers
                 var cmd = new MySqlCommand(@"
                     SELECT
                         u.first_name, u.middle_initial,
-                        u.last_name, u.suffix_name, u.username,
+                        u.last_name, u.suffix_name, u.email,
                         u.id_number,
                         s.student_number,
                         c.course_code,
@@ -467,8 +467,8 @@ namespace OnlineClearanceSystem.Controllers
                                             ? "" : r.GetString("last_name");
                     model.Suffix        = r.IsDBNull(r.GetOrdinal("suffix_name"))
                                             ? "" : r.GetString("suffix_name");
-                    model.Username      = r.IsDBNull(r.GetOrdinal("username"))
-                                            ? "" : r.GetString("username");
+                    model.Email      = r.IsDBNull(r.GetOrdinal("email"))
+                                            ? "" : r.GetString("email");
                     model.Course        = r.IsDBNull(r.GetOrdinal("course_code"))
                                             ? "" : r.GetString("course_code");
 
@@ -535,13 +535,13 @@ namespace OnlineClearanceSystem.Controllers
                         UPDATE users SET
                             first_name = @fn, middle_initial = @mi,
                             last_name  = @ln, suffix_name    = @sx,
-                            username   = @un, password       = @pw
+                            email   = @em, password       = @pw
                         WHERE id = @id", conn);
                     cmd.Parameters.AddWithValue("@fn", model.FirstName?.Trim()     ?? "");
                     cmd.Parameters.AddWithValue("@mi", model.MiddleInitial?.Trim() ?? "");
                     cmd.Parameters.AddWithValue("@ln", model.LastName?.Trim()      ?? "");
                     cmd.Parameters.AddWithValue("@sx", model.Suffix?.Trim()        ?? "");
-                    cmd.Parameters.AddWithValue("@un", model.Username?.Trim()      ?? "");
+                    cmd.Parameters.AddWithValue("@un", model.Email?.Trim()      ?? "");
                     cmd.Parameters.AddWithValue("@pw", hash);
                     cmd.Parameters.AddWithValue("@id", userId);
                     cmd.ExecuteNonQuery();
@@ -552,13 +552,13 @@ namespace OnlineClearanceSystem.Controllers
                         UPDATE users SET
                             first_name = @fn, middle_initial = @mi,
                             last_name  = @ln, suffix_name    = @sx,
-                            username   = @un
+                            email   = @em
                         WHERE id = @id", conn);
                     cmd.Parameters.AddWithValue("@fn", model.FirstName?.Trim()     ?? "");
                     cmd.Parameters.AddWithValue("@mi", model.MiddleInitial?.Trim() ?? "");
                     cmd.Parameters.AddWithValue("@ln", model.LastName?.Trim()      ?? "");
                     cmd.Parameters.AddWithValue("@sx", model.Suffix?.Trim()        ?? "");
-                    cmd.Parameters.AddWithValue("@un", model.Username?.Trim()      ?? "");
+                    cmd.Parameters.AddWithValue("@em", model.Email?.Trim()      ?? "");
                     cmd.Parameters.AddWithValue("@id", userId);
                     cmd.ExecuteNonQuery();
                 }
@@ -807,7 +807,7 @@ namespace OnlineClearanceSystem.Controllers
             var lastName    = User.FindFirst("LastName")?.Value  ?? "";
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0";
 
-            ViewData["UserName"]    = $"{firstName} {lastName}".Trim();
+            ViewData["Email"]    = $"{firstName} {lastName}".Trim();
             ViewData["UserId"]      = "—";
             ViewData["UserCourse"]  = "—";
             ViewData["UserYear"]    = "—";

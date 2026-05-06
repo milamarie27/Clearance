@@ -4,7 +4,6 @@ using OnlineClearanceSystem.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ── Services ───────────────────────────────────────────────
 builder.Services.AddControllersWithViews();
 
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
@@ -12,26 +11,22 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     {
         options.LoginPath        = "/Home/Login";
         options.LogoutPath       = "/Home/Logout";
-        options.AccessDeniedPath = "/Home/AccessDenied";
+        options.AccessDeniedPath = "/Home/Login"; // ← redirect to Login instead
         options.ExpireTimeSpan   = TimeSpan.FromHours(8);
     });
 
-// Make IConfiguration injectable (for DbHelper)
 builder.Services.AddSingleton<IConfiguration>(builder.Configuration);
 
-// ── App pipeline ───────────────────────────────────────────
 var app = builder.Build();
 
-// ── DB migrations (safe, idempotent) ───────────────────────
 try
 {
     using var conn = DbHelper.GetConnection(app.Configuration);
     conn.Open();
     var migrations = new[]
     {
-        // Add e-signature column to signatories (instructors / staff)
-        "ALTER TABLE signatories ADD COLUMN IF NOT EXISTS signature_data MEDIUMTEXT NULL",
-        // Student org-position table
+        "ALTER TABLE signatories ADD COLUMN signature_data MEDIUMTEXT NULL",
+        "ALTER TABLE clearance_organization ADD COLUMN org_signatory VARCHAR(100) NOT NULL DEFAULT ''",
         @"CREATE TABLE IF NOT EXISTS student_signatories (
             id             INT          AUTO_INCREMENT PRIMARY KEY,
             user_id        INT          NOT NULL,
@@ -39,9 +34,6 @@ try
             signature_data MEDIUMTEXT             DEFAULT NULL,
             FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
         )",
-        // Add org_signatory column to clearance_organization (used by instructor/staff org queries)
-        "ALTER TABLE clearance_organization ADD COLUMN IF NOT EXISTS org_signatory VARCHAR(100) DEFAULT '' AFTER org_name",
-        // Backfill: create signatories rows for any instructor/staff accounts that don't have one
         @"INSERT IGNORE INTO signatories (user_id, employee_id)
           SELECT u.id, COALESCE(NULLIF(TRIM(u.id_number),''), CONCAT('EMP-', u.id))
           FROM users u
@@ -50,23 +42,17 @@ try
     };
     foreach (var sql in migrations)
     {
-        new MySqlCommand(sql, conn).ExecuteNonQuery();
+        try { new MySqlCommand(sql, conn).ExecuteNonQuery(); }
+        catch { }
     }
 }
-catch { /* non-fatal: DB may already be up-to-date */ }
+catch { }
 
 app.UseDeveloperExceptionPage();
 app.UseStaticFiles();
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
-
-// Redirect root "/" to login page
-app.MapGet("/", context =>
-{
-    context.Response.Redirect("/Home/Login");
-    return Task.CompletedTask;
-});
 
 app.MapControllerRoute(
     name:    "default",

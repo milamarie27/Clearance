@@ -146,9 +146,24 @@
     // ══ LOAD STAFF ══
     async function loadStaff() {
         try {
-            const res = await fetch('/api/admin/staff');
-            staffList = await res.json();
-        } catch { staffList = []; }
+            const res  = await fetch('/api/admin/staff');
+            const data = await res.json();
+            staffList  = Array.isArray(data) ? data : [];
+            if (!Array.isArray(data)) {
+                document.getElementById('staff-list-panel').innerHTML =
+                    `<div style="padding:24px;color:#fc8181;font-size:13px;">
+                        API error: ${JSON.stringify(data)}
+                    </div>`;
+                return;
+            }
+        } catch (e) {
+            staffList = [];
+            document.getElementById('staff-list-panel').innerHTML =
+                `<div style="padding:24px;color:#fc8181;font-size:13px;">
+                    Fetch error: ${e.message}
+                </div>`;
+            return;
+        }
         renderStaffList();
         populateStaffDropdown();
         document.getElementById('stat-total-staff').textContent = staffList.length;
@@ -216,7 +231,7 @@
                                                 ${escHtml(s.name)}
                                             </div>
                                             <div style="font-size:11px;color:var(--muted);">
-                                                ${escHtml(s.username)}
+                                                ${escHtml(s.email || '')}
                                             </div>
                                         </div>
                                     </div>

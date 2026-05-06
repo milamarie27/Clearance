@@ -7,7 +7,7 @@ using System.Security.Claims;
 
 namespace OnlineClearanceSystem.Controllers
 {
-    [Authorize(Roles = "Instructor")]
+    [Authorize(Roles = "Staff")]
     public class StaffController : Controller
     {
         private readonly IConfiguration _config;

@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS users (
     middle_initial VARCHAR(10)           DEFAULT '',
     last_name      VARCHAR(50)  NOT NULL DEFAULT '',
     suffix_name    VARCHAR(20)           DEFAULT '',
-    username       VARCHAR(100) NOT NULL UNIQUE,
+    email          VARCHAR(100) NOT NULL UNIQUE,
     password       VARCHAR(255) NOT NULL,
     id_number      VARCHAR(50)           DEFAULT NULL,
     role           VARCHAR(20)  NOT NULL DEFAULT 'Pending',

@@ -29,9 +29,9 @@ namespace OnlineClearanceSystem.Controllers
                 conn.Open();
 
                 var cmd = new MySqlCommand(
-                    "SELECT id, username, password, first_name, last_name, role, is_active FROM users WHERE username = @u LIMIT 1",
+                    "SELECT id, email, password, first_name, last_name, role, is_active FROM users WHERE email = @u LIMIT 1",
                     conn);
-                cmd.Parameters.AddWithValue("@u", req.Username);
+                cmd.Parameters.AddWithValue("@u", req.Email);
 
                 using var r = cmd.ExecuteReader();
                 if (!r.Read())
@@ -40,7 +40,7 @@ namespace OnlineClearanceSystem.Controllers
                 var user = new User
                 {
                     Id        = r.GetInt32("id"),
-                    Username  = r.GetString("username"),
+                    Email     = r.GetString("email"),
                     Password  = r.GetString("password"),
                     FirstName = r.GetString("first_name"),
                     LastName  = r.GetString("last_name"),
@@ -446,7 +446,7 @@ namespace OnlineClearanceSystem.Controllers
     // ── Request body models ───────────────────────────────────
     public class LoginRequest
     {
-        public string Username { get; set; } = "";
+        public string Email    { get; set; } = "";
         public string Password { get; set; } = "";
     }
 

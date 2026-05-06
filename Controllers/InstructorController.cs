@@ -369,7 +369,7 @@ namespace OnlineClearanceSystem.Controllers
 
                 var cmd = new MySqlCommand(@"
                     SELECT
-                        u.first_name, u.middle_initial, u.last_name, u.username,
+                        u.first_name, u.middle_initial, u.last_name, u.email,
                         sig.employee_id, sig.signature_data
                     FROM users u
                     LEFT JOIN signatories sig ON sig.user_id = u.id

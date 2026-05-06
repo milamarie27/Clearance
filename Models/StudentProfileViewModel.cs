@@ -10,7 +10,7 @@ namespace OnlineClearanceSystem.Models
         public string Course        { get; set; } = "";
         public string YearLevel     { get; set; } = "";
         public string Section       { get; set; } = "";
-        public string Username      { get; set; } = "";
+        public string Email     { get; set; } = "";
         public string Password      { get; set; } = "";
 
         public List<string> AvailableCourses { get; set; } = [];
