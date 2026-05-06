@@ -1,5 +1,5 @@
 @{
-    string userName    = ViewData["UserName"]?.ToString()      ?? "Student";
+    string studentName   = User.FindFirst("FirstName")?.Value + " " + User.FindFirst("LastName")?.Value;
     string userId      = ViewData["UserId"]?.ToString()        ?? "";
     string userCourse  = ViewData["UserCourse"]?.ToString()    ?? "BSIT";
     string userYear    = ViewData["UserYear"]?.ToString()      ?? "2nd Year";
@@ -162,7 +162,7 @@
         <nav class="sidebar">
             <div class="sb-profile">
                 <div class="sb-avatar"><i class="fas fa-user"></i></div>
-                <div class="sb-name">@userName</div>
+                <div class="sb-name">@studentName</div>
                 <div class="sb-sub">@userCourse · ID @userId</div>
             </div>
             <hr class="sb-divider" />
