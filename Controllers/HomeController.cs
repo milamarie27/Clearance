@@ -5,34 +5,34 @@ using System.Security.Claims;
 using MySql.Data.MySqlClient;
 using OnlineClearanceSystem.Models;
 using OnlineClearanceSystem.Data;
- 
+
 namespace OnlineClearanceSystem.Controllers
 {
     public class HomeController : Controller
     {
         private readonly IConfiguration _config;
- 
+
         public HomeController(IConfiguration config)
         {
             _config = config;
         }
- 
+
         // ── GET /Home/Index ────────────────────────────────────
         public IActionResult Index() => View();
- 
+
         // ── GET /Home/Login ────────────────────────────────────
         [HttpGet]
         public IActionResult Login()
         {
             if (User.Identity?.IsAuthenticated == true)
                 return RedirectBasedOnRole();
- 
+
             if (TempData["RegisterSuccess"] != null)
                 ViewBag.SuccessMessage = TempData["RegisterSuccess"];
- 
+
             return View(new LoginViewModel());
         }
- 
+
         // ── POST /Home/Login ───────────────────────────────────
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -40,27 +40,26 @@ namespace OnlineClearanceSystem.Controllers
         {
             if (!ModelState.IsValid)
                 return View(model);
- 
+
             try
             {
                 using var conn = DbHelper.GetConnection(_config);
                 conn.Open();
- 
-                // Login by ID Number instead of username
+
                 var cmd = new MySqlCommand(@"
                     SELECT id, id_number, password, first_name,
                            last_name, role, is_active
                     FROM users
                     WHERE id_number = @idnum LIMIT 1", conn);
                 cmd.Parameters.AddWithValue("@idnum", model.IdNumber);
- 
+
                 using var r = cmd.ExecuteReader();
                 if (!r.Read())
                 {
                     ViewBag.ErrorMessage = "Invalid ID Number or password.";
                     return View(model);
                 }
- 
+
                 var id        = r.GetInt32("id");
                 var hash      = r.GetString("password");
                 var firstName = r.GetString("first_name");
@@ -70,8 +69,7 @@ namespace OnlineClearanceSystem.Controllers
                                     ? null
                                     : r.GetString("role");
                 r.Close();
- 
-                // Account pending — role is 'Pending' or not yet activated
+
                 if (!isActive || role == null || role == "Pending")
                 {
                     ViewBag.ErrorMessage =
@@ -80,19 +78,17 @@ namespace OnlineClearanceSystem.Controllers
                         "and activate your account. You will be notified via email.";
                     return View(model);
                 }
- 
-                // Verify password
+
                 bool valid = hash.StartsWith("$2")
                     ? BCrypt.Net.BCrypt.Verify(model.Password, hash)
                     : hash == model.Password;
- 
+
                 if (!valid)
                 {
                     ViewBag.ErrorMessage = "Invalid ID Number or password.";
                     return View(model);
                 }
- 
-                // Sign in with cookie
+
                 var claims = new List<Claim>
                 {
                     new Claim(ClaimTypes.NameIdentifier, id.ToString()),
@@ -102,19 +98,16 @@ namespace OnlineClearanceSystem.Controllers
                     new Claim("LastName",       lastName),
                     new Claim(ClaimTypes.Surname, lastName),
                 };
- 
+
                 var identity  = new ClaimsIdentity(
                     claims, CookieAuthenticationDefaults.AuthenticationScheme);
                 var principal = new ClaimsPrincipal(identity);
- 
+
                 await HttpContext.SignInAsync(
                     CookieAuthenticationDefaults.AuthenticationScheme,
                     principal,
-                    new AuthenticationProperties
-                    {
-                        IsPersistent = model.RememberMe
-                    });
- 
+                    new AuthenticationProperties { IsPersistent = model.RememberMe });
+
                 return RedirectBasedOnRole();
             }
             catch (Exception ex)
@@ -123,17 +116,17 @@ namespace OnlineClearanceSystem.Controllers
                 return View(model);
             }
         }
- 
+
         // ── GET /Home/Register ─────────────────────────────────
         [HttpGet]
         public IActionResult Register()
         {
             if (User.Identity?.IsAuthenticated == true)
                 return RedirectBasedOnRole();
- 
+
             return View(new RegisterViewModel());
         }
- 
+
         // ── POST /Home/Register ────────────────────────────────
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -141,65 +134,66 @@ namespace OnlineClearanceSystem.Controllers
         {
             if (!ModelState.IsValid)
                 return View(model);
- 
+
             try
             {
                 using var conn = DbHelper.GetConnection(_config);
                 conn.Open();
- 
+
                 // Check duplicate ID Number
                 var checkId = new MySqlCommand(
                     "SELECT COUNT(*) FROM users WHERE id_number = @id", conn);
                 checkId.Parameters.AddWithValue("@id", model.IdNumber);
-                var idExists = Convert.ToInt32(checkId.ExecuteScalar()) > 0;
- 
-                if (idExists)
+                if (Convert.ToInt32(checkId.ExecuteScalar()) > 0)
                 {
                     ModelState.AddModelError(
                         nameof(model.IdNumber),
                         "That ID Number is already registered.");
                     return View(model);
                 }
- 
+
                 // Check duplicate Email
                 var checkEmail = new MySqlCommand(
                     "SELECT COUNT(*) FROM users WHERE email = @email", conn);
                 checkEmail.Parameters.AddWithValue("@email", model.Email.Trim().ToLower());
-                var emailExists = Convert.ToInt32(checkEmail.ExecuteScalar()) > 0;
- 
-                if (emailExists)
+                if (Convert.ToInt32(checkEmail.ExecuteScalar()) > 0)
                 {
                     ModelState.AddModelError(
                         nameof(model.Email),
                         "That email address is already registered.");
                     return View(model);
                 }
- 
+
                 // Hash password
                 var hash = BCrypt.Net.BCrypt.HashPassword(model.Password);
- 
+
                 var cmd = new MySqlCommand(@"
                     INSERT INTO users
                         (id_number, email, password,
                          first_name, last_name,
+                         course, year_level, section,
                          role, is_active, created_at)
                     VALUES
                         (@idnum, @email, @p,
                          @fn, @ln,
+                         @course, @yearLevel, @section,
                          'Pending', 0, NOW())", conn);
- 
-                cmd.Parameters.AddWithValue("@idnum", model.IdNumber);
-                cmd.Parameters.AddWithValue("@email", model.Email.Trim().ToLower());
-                cmd.Parameters.AddWithValue("@p",     hash);
-                cmd.Parameters.AddWithValue("@fn",    model.FirstName.Trim());
-                cmd.Parameters.AddWithValue("@ln",    model.LastName.Trim());
+
+                cmd.Parameters.AddWithValue("@idnum",     model.IdNumber);
+                cmd.Parameters.AddWithValue("@email",     model.Email.Trim().ToLower());
+                cmd.Parameters.AddWithValue("@p",         hash);
+                cmd.Parameters.AddWithValue("@fn",        model.FirstName.Trim());
+                cmd.Parameters.AddWithValue("@ln",        model.LastName.Trim());
+                cmd.Parameters.AddWithValue("@course",    (object?)model.Course?.Trim()  ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@yearLevel", (object?)model.YearLevel       ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@section",   (object?)model.Section?.Trim() ?? DBNull.Value);
                 cmd.ExecuteNonQuery();
- 
+
                 TempData["RegisterSuccess"] =
                     $"Account registered for {model.FirstName} {model.LastName}. " +
                     "Please wait for the Admin to activate your account. " +
                     $"You will be notified at {model.Email} once your account is activated.";
- 
+
                 return RedirectToAction(nameof(Login));
             }
             catch (Exception ex)
@@ -208,7 +202,7 @@ namespace OnlineClearanceSystem.Controllers
                 return View(model);
             }
         }
- 
+
         // ── POST /Home/Logout ──────────────────────────────────
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -218,10 +212,10 @@ namespace OnlineClearanceSystem.Controllers
                 CookieAuthenticationDefaults.AuthenticationScheme);
             return RedirectToAction(nameof(Login));
         }
- 
+
         // ── GET /Home/AccessDenied ─────────────────────────────
         public IActionResult AccessDenied() => View();
- 
+
         // ── Helper ─────────────────────────────────────────────
         private IActionResult RedirectBasedOnRole()
         {

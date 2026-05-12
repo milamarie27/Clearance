@@ -1,52 +1,33 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
-using MySql.Data.MySqlClient;
+using Microsoft.EntityFrameworkCore;
 using OnlineClearanceSystem.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews()
+    .AddJsonOptions(o => o.JsonSerializerOptions.MaxDepth = 64);
+
+builder.WebHost.ConfigureKestrel(k =>
+    k.Limits.MaxRequestBodySize = 10 * 1024 * 1024);
 
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
         options.LoginPath        = "/Home/Login";
         options.LogoutPath       = "/Home/Logout";
-        options.AccessDeniedPath = "/Home/Login"; // ← redirect to Login instead
+        options.AccessDeniedPath = "/Home/Login";
         options.ExpireTimeSpan   = TimeSpan.FromHours(8);
     });
 
 builder.Services.AddSingleton<IConfiguration>(builder.Configuration);
 
-var app = builder.Build();
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseMySql(
+        builder.Configuration.GetConnectionString("DefaultConnection"),
+        ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("DefaultConnection"))
+    ));
 
-try
-{
-    using var conn = DbHelper.GetConnection(app.Configuration);
-    conn.Open();
-    var migrations = new[]
-    {
-        "ALTER TABLE signatories ADD COLUMN signature_data MEDIUMTEXT NULL",
-        "ALTER TABLE clearance_organization ADD COLUMN org_signatory VARCHAR(100) NOT NULL DEFAULT ''",
-        @"CREATE TABLE IF NOT EXISTS student_signatories (
-            id             INT          AUTO_INCREMENT PRIMARY KEY,
-            user_id        INT          NOT NULL,
-            position       VARCHAR(100)           DEFAULT '',
-            signature_data MEDIUMTEXT             DEFAULT NULL,
-            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-        )",
-        @"INSERT IGNORE INTO signatories (user_id, employee_id)
-          SELECT u.id, COALESCE(NULLIF(TRIM(u.id_number),''), CONCAT('EMP-', u.id))
-          FROM users u
-          WHERE u.role IN ('Instructor','Staff') AND u.is_active = 1
-            AND NOT EXISTS (SELECT 1 FROM signatories s WHERE s.user_id = u.id)"
-    };
-    foreach (var sql in migrations)
-    {
-        try { new MySqlCommand(sql, conn).ExecuteNonQuery(); }
-        catch { }
-    }
-}
-catch { }
+var app = builder.Build();
 
 app.UseDeveloperExceptionPage();
 app.UseStaticFiles();

@@ -3,7 +3,14 @@
     "allow": [
       "Bash(dotnet build *)",
       "Bash(dotnet tool *)",
-      "Bash(findstr mysql *)"
+      "Bash(findstr mysql *)",
+      "Bash(mysql -u root -paltheajean1120! OnlineClearance)",
+      "PowerShell(& \"mysql\" --version 2>&1)",
+      "PowerShell(& \"C:\\\\Program Files\\\\MySQL\\\\MySQL Server 8.0\\\\bin\\\\mysql.exe\" --version 2>&1)",
+      "PowerShell(Get-Command mysql -ErrorAction SilentlyContinue)",
+      "PowerShell(& \"C:\\\\Program Files\\\\MySQL\\\\MySQL Server 9.6\\\\bin\\\\mysql.exe\" -u root \"-paltheajean1120!\" OnlineClearance --execute \"SOURCE c:/Users/Admin/OnlineClearance/migration.sql\" 2>&1)",
+      "PowerShell(& \"C:\\\\Program Files\\\\MySQL\\\\MySQL Server 9.6\\\\bin\\\\mysql.exe\" -u root \"-paltheajean1120!\" OnlineClearance 2>&1)",
+      "PowerShell(& \"C:\\\\Program Files\\\\MySQL\\\\MySQL Server 9.6\\\\bin\\\\mysql.exe\" -u root \"-paltheajean1120!\" OnlineClearance --execute \"SELECT TABLE_NAME, CONSTRAINT_NAME, COLUMN_NAME FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE TABLE_SCHEMA = 'OnlineClearance' AND REFERENCED_TABLE_NAME IS NOT NULL ORDER BY TABLE_NAME;\" 2>&1)"
     ]
   }
 }

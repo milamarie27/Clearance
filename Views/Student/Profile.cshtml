@@ -3,7 +3,6 @@
     ViewData["Title"]      = "Profile";
     ViewData["ActivePage"] = "Profile";
     Layout = "~/Views/Shared/_StudentLayout.cshtml";
-    bool hasPosition = Model?.Positions != null && Model.Positions.Any();
 }
 
 @Html.AntiForgeryToken()
@@ -20,287 +19,279 @@
     <div class="alert alert-danger mb-3">⚠ @ViewBag.ErrorMessage</div>
 }
 
-<!-- PROFILE HEADER -->
-<div style="background:var(--green);border-radius:12px;padding:22px 28px;display:flex;align-items:center;gap:20px;margin-bottom:20px;">
-    <div style="position:relative;">
-        <div style="width:70px;height:70px;border-radius:50%;background:white;display:flex;align-items:center;justify-content:center;cursor:pointer;"
-             onclick="document.getElementById('avatar-upload').click()">
-            <i class="fas fa-user" style="color:#1a4731;font-size:28px;"></i>
-        </div>
-        <div style="position:absolute;bottom:0;right:0;background:var(--green-accent);border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;cursor:pointer;"
-             onclick="document.getElementById('avatar-upload').click()">
-            <i class="fas fa-camera" style="color:white;font-size:10px;"></i>
-        </div>
-        <input type="file" id="avatar-upload" accept="image/*" style="display:none;" />
-    </div>
-    <div>
-        <div style="font-size:20px;font-weight:800;color:white;">
-            @(Model?.FullName is { Length: > 0 } fn ? fn : "Student")
-        </div>
-        <div style="font-size:13px;color:rgba(255,255,255,0.7);">
-            Student ID: @(Model?.StudentId ?? "—")
-        </div>
-    </div>
-    <div style="margin-left:auto;">
-        <span style="background:var(--green-accent);color:white;border-radius:8px;padding:8px 20px;font-size:13px;font-weight:700;">Active</span>
-    </div>
-</div>
+<div class="row g-3">
 
-@* TAB BUTTONS — only shown when student has an assigned org position *@
-@if (hasPosition)
-{
-    <div style="display:flex;gap:10px;margin-bottom:20px;">
-        <button id="tab-esig" onclick="switchTab('esig')"
-            style="padding:9px 22px;border-radius:8px;border:none;background:var(--green);color:white;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;transition:0.2s;">
-            <i class="fas fa-signature me-2"></i>E-Signature
-        </button>
-        <button id="tab-info" onclick="switchTab('info')"
-            style="padding:9px 22px;border-radius:8px;border:1.5px solid #dee2e6;background:white;color:#555;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;transition:0.2s;">
-            <i class="fas fa-user-edit me-2"></i>Edit Profile
-        </button>
-    </div>
-}
+    <!-- ── LEFT COLUMN: Edit Profile ── -->
+    <div class="col-md-7">
 
-@* E-SIGNATURE PANEL — only rendered when student has a position *@
-@if (hasPosition)
-{
-    <div id="panel-esig">
-        <div class="row g-3">
-
-            <div class="col-md-7">
-                <div style="background:white;border-radius:12px;border:1px solid #e2e8f0;overflow:hidden;">
-                    <div style="padding:14px 18px;background:var(--green);display:flex;align-items:center;gap:8px;">
-                        <i class="fas fa-signature" style="color:white;"></i>
-                        <span style="font-size:14px;font-weight:700;color:white;">E-Signature</span>
-                    </div>
-                    <div style="padding:20px;">
-                        <div style="display:flex;gap:8px;margin-bottom:16px;">
-                            <button id="mode-draw" onclick="switchMode('draw')"
-                                style="flex:1;padding:8px;border-radius:8px;border:none;background:var(--green);color:white;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">
-                                <i class="fas fa-pen me-1"></i>Draw Signature
-                            </button>
-                            <button id="mode-upload" onclick="switchMode('upload')"
-                                style="flex:1;padding:8px;border-radius:8px;border:1.5px solid #dee2e6;background:white;color:#555;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">
-                                <i class="fas fa-upload me-1"></i>Upload Image
-                            </button>
-                        </div>
-
-                        <div id="draw-panel">
-                            <div style="font-size:12px;color:#888;margin-bottom:6px;">Draw your signature below using your mouse or touch:</div>
-                            <canvas id="sig-canvas" style="width:100%;height:180px;background:#111;border-radius:10px;cursor:crosshair;display:block;touch-action:none;"></canvas>
-                            <div style="display:flex;gap:8px;margin-top:10px;">
-                                <button onclick="clearCanvas()"
-                                    style="flex:1;padding:8px;border-radius:8px;border:1.5px solid #dee2e6;background:white;color:#555;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">
-                                    <i class="fas fa-eraser me-1"></i>Clear
-                                </button>
-                                <button onclick="saveDrawnSignature()"
-                                    style="flex:2;padding:8px;border-radius:8px;border:none;background:var(--green-accent);color:white;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">
-                                    <i class="fas fa-check me-1"></i>Use This Signature
-                                </button>
-                            </div>
-                        </div>
-
-                        <div id="upload-panel" style="display:none;">
-                            <div style="font-size:12px;color:#888;margin-bottom:6px;">Upload a signature image (PNG with transparent background recommended):</div>
-                            <div onclick="document.getElementById('sig-upload').click()"
-                                style="border:2px dashed #dee2e6;border-radius:10px;height:140px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;background:#fafafa;"
-                                onmouseover="this.style.borderColor='var(--green)'" onmouseout="this.style.borderColor='#dee2e6'">
-                                <i class="fas fa-cloud-upload-alt" style="font-size:28px;color:#aaa;margin-bottom:8px;"></i>
-                                <div style="font-size:13px;font-weight:600;color:#555;">Click to upload signature</div>
-                                <div style="font-size:11px;color:#aaa;">PNG, JPG supported</div>
-                            </div>
-                            <input type="file" id="sig-upload" accept="image/*" style="display:none;" onchange="previewUploadedSignature(this)" />
-                        </div>
-
-                        <div style="margin-top:18px;border-top:1px solid #e2e8f0;padding-top:16px;">
-                            <div style="font-size:12px;font-weight:700;color:#555;margin-bottom:8px;">Current Saved Signature</div>
-                            <div style="background:#111;border-radius:10px;height:100px;display:flex;align-items:center;justify-content:center;overflow:hidden;">
-                                <img id="saved-sig-preview" src="" style="display:none;max-height:100%;max-width:100%;object-fit:contain;" />
-                                <span id="saved-sig-placeholder" style="color:rgba(255,255,255,0.3);font-size:12px;">No signature saved yet</span>
-                            </div>
-                            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;">
-                                <span id="sig-status" style="background:#f8f9fa;color:#888;border-radius:20px;padding:5px 14px;font-size:12px;font-weight:700;">
-                                    <i class="fas fa-clock me-1"></i>Not yet saved
-                                </span>
-                                <span id="sig-timestamp" style="font-size:11px;color:#aaa;"></span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+        <!-- EDIT PROFILE -->
+        <div style="background:white;border-radius:12px;border:1px solid #e2e8f0;overflow:hidden;margin-bottom:12px;">
+            <div style="padding:14px 18px;background:var(--green);display:flex;align-items:center;gap:8px;">
+                <i class="fas fa-user-edit" style="color:white;"></i>
+                <span style="font-size:14px;font-weight:700;color:white;">Edit Profile</span>
             </div>
+            <div style="padding:20px;">
+                <form asp-action="SaveProfile" asp-controller="Student" method="post" novalidate>
+                    @Html.AntiForgeryToken()
+                    <div class="row g-3">
 
-            <div class="col-md-5">
-                <div style="background:white;border-radius:12px;border:1px solid #e2e8f0;overflow:hidden;">
-                    <div style="padding:14px 18px;background:var(--green);display:flex;align-items:center;gap:8px;">
-                        <i class="fas fa-sitemap" style="color:white;"></i>
-                        <span style="font-size:14px;font-weight:700;color:white;">Assigned Position</span>
-                    </div>
-                    <div style="padding:16px;">
-                        <div style="font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:12px;">Organization Role</div>
-                        @foreach (var pos in Model!.Positions)
-                        {
-                            <div style="background:#f8f9fa;border:1px solid #e2e8f0;border-radius:10px;padding:14px 18px;font-size:13px;font-weight:600;color:#1a1a2e;margin-bottom:10px;">
-                                @pos.OrgRole
+                        <div class="col-md-6">
+                            <label class="profile-label">First Name</label>
+                            <div class="profile-input-wrap">
+                                <input asp-for="FirstName" class="profile-input" placeholder="First Name"/>
+                                <i class="fas fa-pen profile-edit-icon"></i>
                             </div>
-                        }
-                    </div>
-                </div>
-            </div>
+                        </div>
 
-        </div>
-    </div>
-}
+                        <div class="col-md-6">
+                            <label class="profile-label">Last Name</label>
+                            <div class="profile-input-wrap">
+                                <input asp-for="LastName" class="profile-input" placeholder="Last Name"/>
+                                <i class="fas fa-pen profile-edit-icon"></i>
+                            </div>
+                        </div>
 
-@* EDIT PROFILE PANEL — hidden by default when tabs are present *@
-<div id="panel-info" style="@(hasPosition ? "display:none;" : "")">
-    <div style="background:white;border-radius:12px;padding:28px;box-shadow:0 1px 4px rgba(0,0,0,0.07);">
-        <form asp-action="SaveProfile" asp-controller="Student" method="post" novalidate>
-            @Html.AntiForgeryToken()
-            <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="profile-label">Middle Initial</label>
+                            <div class="profile-input-wrap">
+                                <input asp-for="MiddleInitial" class="profile-input" placeholder="M.I." maxlength="3"/>
+                                <i class="fas fa-pen profile-edit-icon"></i>
+                            </div>
+                        </div>
 
-                <div class="col-md-6">
-                    <label class="profile-label">First Name</label>
-                    <div class="profile-input-wrap">
-                        <input asp-for="FirstName" class="profile-input" placeholder="First Name" />
-                        <i class="fas fa-pen profile-edit-icon"></i>
-                    </div>
-                </div>
+                        <div class="col-md-4">
+                            <label class="profile-label">Suffix</label>
+                            <div class="profile-input-wrap">
+                                <input asp-for="Suffix" class="profile-input" placeholder="e.g. Jr., Sr."/>
+                                <i class="fas fa-pen profile-edit-icon"></i>
+                            </div>
+                        </div>
 
-                <div class="col-md-6">
-                    <label class="profile-label">Student Number</label>
-                    <div class="profile-input-wrap">
-                        <input asp-for="StudentId" class="profile-input" placeholder="e.g. 2023-00001" />
-                        <i class="fas fa-pen profile-edit-icon"></i>
-                    </div>
-                </div>
+                        <div class="col-md-4">
+                            <label class="profile-label">Student Number</label>
+                            <div class="profile-input-wrap">
+                                <input asp-for="StudentId" class="profile-input" placeholder="e.g. 2023-00001"
+                                       readonly style="background:#f3f4f6;color:#9ca3af;cursor:not-allowed;"/>
+                                <i class="fas fa-lock profile-edit-icon"></i>
+                            </div>
+                        </div>
 
-                <div class="col-md-6">
-                    <label class="profile-label">Middle Initial</label>
-                    <div class="profile-input-wrap">
-                        <input asp-for="MiddleInitial" class="profile-input" placeholder="M.I." maxlength="3" />
-                        <i class="fas fa-pen profile-edit-icon"></i>
-                    </div>
-                </div>
+                        <div class="col-md-4">
+                            <label class="profile-label">Course</label>
+                            <div class="profile-input-wrap select-wrap">
+                                <select asp-for="Course" id="course-select" class="profile-input">
+                                    <option value="">-- Select Course --</option>
+                                    @foreach (var c in (Model?.AvailableCourses ?? []))
+                                    {
+                                        <option value="@c" selected="@(Model?.Course == c ? "selected" : null)">@c</option>
+                                    }
+                                </select>
+                                <i class="fas fa-chevron-down profile-edit-icon"></i>
+                            </div>
+                        </div>
 
-                <div class="col-md-6">
-                    <label class="profile-label">Course</label>
-                    <div class="profile-input-wrap select-wrap">
-                        <select asp-for="Course" class="profile-input">
-                            <option value="">-- Select Course --</option>
-                            @foreach (var c in (Model?.AvailableCourses ?? []))
+                        <div class="col-md-4">
+                            <label class="profile-label">Year Level</label>
+                            <div class="profile-input-wrap select-wrap">
+                                <select asp-for="YearLevel" id="year-select" class="profile-input">
+                                    <option value="1st Year" selected="@(Model?.YearLevel=="1st Year"?"selected":null)">1st Year</option>
+                                    <option value="2nd Year" selected="@(Model?.YearLevel=="2nd Year"?"selected":null)">2nd Year</option>
+                                    <option value="3rd Year" selected="@(Model?.YearLevel=="3rd Year"?"selected":null)">3rd Year</option>
+                                    <option value="4th Year" selected="@(Model?.YearLevel=="4th Year"?"selected":null)">4th Year</option>
+                                </select>
+                                <i class="fas fa-chevron-down profile-edit-icon"></i>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="profile-label">Section</label>
+                            <div class="profile-input-wrap select-wrap">
+                                <select asp-for="Section" id="section-select" class="profile-input">
+                                    <option value="">-- Select Course & Year first --</option>
+                                    @if (!string.IsNullOrEmpty(Model?.Section))
+                                    {
+                                        <option value="@Model.Section" selected="selected">@Model.Section</option>
+                                    }
+                                </select>
+                                <i class="fas fa-chevron-down profile-edit-icon"></i>
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="profile-label">Email</label>
+                            <div class="profile-input-wrap">
+                                <input asp-for="Email" class="profile-input" placeholder="Email"/>
+                                <i class="fas fa-pen profile-edit-icon"></i>
+                            </div>
+                        </div>
+
+                        <!-- ASSIGNED POSITION (read-only, merged into profile) -->
+                        <div class="col-12">
+                            <label class="profile-label">Assigned Position</label>
+                            @if (Model?.Positions != null && Model.Positions.Any())
                             {
-                                <option value="@c" selected="@(Model?.Course == c ? "selected" : null)">@c</option>
+                                <div style="display:flex;flex-wrap:wrap;gap:6px;">
+                                    @foreach (var pos in Model.Positions)
+                                    {
+                                        <div style="background:#f3f4f6;border:1px solid #e2e8f0;border-radius:8px;
+                                                    padding:9px 13px;font-size:13px;font-weight:600;color:#9ca3af;
+                                                    cursor:not-allowed;display:flex;align-items:center;gap:6px;">
+                                            <i class="fas fa-lock" style="font-size:11px;color:#c0c4cc;"></i>
+                                            @pos.OrgRole
+                                        </div>
+                                    }
+                                </div>
                             }
-                        </select>
-                        <i class="fas fa-chevron-down profile-edit-icon"></i>
+                            else
+                            {
+                                <div style="background:#f3f4f6;border:1px solid #e2e8f0;border-radius:8px;
+                                            padding:9px 13px;font-size:13px;color:#c0c4cc;">
+                                    <i class="fas fa-lock me-1" style="font-size:11px;"></i>No position assigned yet.
+                                </div>
+                            }
+                        </div>
+
+                        <div class="col-12">
+                            <label class="profile-label">
+                                Account Password
+                                <span style="font-weight:400;color:#aaa;font-size:10px;">(leave blank to keep current)</span>
+                            </label>
+                            <div class="profile-input-wrap" style="position:relative;">
+                                <input id="pw-field" asp-for="Password" class="profile-input"
+                                       type="password" placeholder="Enter new password to change"
+                                       autocomplete="new-password"/>
+                                <button type="button" onclick="togglePw()"
+                                        style="position:absolute;right:10px;top:50%;transform:translateY(-50%);
+                                               background:none;border:none;cursor:pointer;color:#aaa;padding:0;font-size:14px;">
+                                    <i class="fas fa-eye-slash" id="pw-icon"></i>
+                                </button>
+                            </div>
+                        </div>
+
                     </div>
+
+                    <div style="margin-top:20px;text-align:center;">
+                        <button type="submit" class="btn-green"
+                                style="padding:11px 60px;font-size:14px;letter-spacing:1px;">
+                            SAVE PROFILE
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── RIGHT COLUMN: E-Signature ── -->
+    <div class="col-md-5">
+
+        <!-- E-SIGNATURE -->
+        <div style="background:white;border-radius:12px;border:1px solid #e2e8f0;overflow:hidden;margin-bottom:12px;">
+            <div style="padding:14px 18px;background:var(--green);display:flex;align-items:center;gap:8px;">
+                <i class="fas fa-signature" style="color:white;"></i>
+                <span style="font-size:14px;font-weight:700;color:white;">E-Signature</span>
+            </div>
+            <div style="padding:16px;">
+
+                <!-- MODE TOGGLE -->
+                <div style="display:flex;gap:8px;margin-bottom:14px;">
+                    <button id="mode-draw" onclick="switchMode('draw')"
+                            style="flex:1;padding:8px;border-radius:8px;border:none;background:var(--green);color:white;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">
+                        <i class="fas fa-pen me-1"></i>Draw
+                    </button>
+                    <button id="mode-upload" onclick="switchMode('upload')"
+                            style="flex:1;padding:8px;border-radius:8px;border:1.5px solid #dee2e6;background:white;color:#555;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">
+                        <i class="fas fa-upload me-1"></i>Upload
+                    </button>
                 </div>
 
-                <div class="col-md-6">
-                    <label class="profile-label">Last Name</label>
-                    <div class="profile-input-wrap">
-                        <input asp-for="LastName" class="profile-input" placeholder="Last Name" />
-                        <i class="fas fa-pen profile-edit-icon"></i>
+                <!-- DRAW PANEL -->
+                <div id="draw-panel">
+                    <div style="font-size:11px;color:#888;margin-bottom:5px;">
+                        Draw your signature using your mouse or touch:
                     </div>
-                </div>
-
-                <div class="col-md-6">
-                    <label class="profile-label">Year Level</label>
-                    <div class="profile-input-wrap select-wrap">
-                        <select asp-for="YearLevel" class="profile-input">
-                            <option value="1st Year">1st Year</option>
-                            <option value="2nd Year">2nd Year</option>
-                            <option value="3rd Year">3rd Year</option>
-                            <option value="4th Year">4th Year</option>
-                        </select>
-                        <i class="fas fa-chevron-down profile-edit-icon"></i>
-                    </div>
-                </div>
-
-                <div class="col-md-6">
-                    <label class="profile-label">Suffix Name</label>
-                    <div class="profile-input-wrap">
-                        <input asp-for="Suffix" class="profile-input" placeholder="e.g. Jr., Sr., III" />
-                        <i class="fas fa-pen profile-edit-icon"></i>
-                    </div>
-                </div>
-
-                <div class="col-md-6">
-                    <label class="profile-label">Section</label>
-                    <div class="profile-input-wrap">
-                        <input asp-for="Section" class="profile-input" placeholder="e.g. A" />
-                        <i class="fas fa-pen profile-edit-icon"></i>
-                    </div>
-                </div>
-
-                <div class="col-md-6">
-                    <label class="profile-label">Email</label>
-                    <div class="profile-input-wrap">
-                        <input asp-for="Email" class="profile-input" placeholder="Email" />
-                        <i class="fas fa-pen profile-edit-icon"></i>
-                    </div>
-                </div>
-
-                <div class="col-md-6">
-                    <label class="profile-label">
-                        Account Password
-                        <span style="font-weight:400;color:#aaa;font-size:10px;">(leave blank to keep current)</span>
-                    </label>
-                    <div class="profile-input-wrap" style="position:relative;">
-                        <input id="pw-field" asp-for="Password" class="profile-input" type="password"
-                               placeholder="Enter new password to change" autocomplete="new-password" />
-                        <button type="button" onclick="togglePw()"
-                                style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#aaa;padding:0;font-size:14px;">
-                            <i class="fas fa-eye-slash" id="pw-icon"></i>
+                    <canvas id="sig-canvas"
+                            style="width:100%;height:150px;background:#111;border-radius:10px;
+                                   cursor:crosshair;display:block;touch-action:none;"></canvas>
+                    <div style="display:flex;gap:8px;margin-top:8px;">
+                        <button onclick="clearCanvas()"
+                                style="flex:1;padding:7px;border-radius:8px;border:1.5px solid #dee2e6;
+                                       background:white;color:#555;font-size:12px;font-weight:600;
+                                       cursor:pointer;font-family:inherit;">
+                            <i class="fas fa-eraser me-1"></i>Clear
+                        </button>
+                        <button onclick="saveDrawnSignature()"
+                                style="flex:2;padding:7px;border-radius:8px;border:none;
+                                       background:var(--green-accent);color:white;font-size:12px;
+                                       font-weight:700;cursor:pointer;font-family:inherit;">
+                            <i class="fas fa-check me-1"></i>Use This Signature
                         </button>
                     </div>
                 </div>
 
+                <!-- UPLOAD PANEL -->
+                <div id="upload-panel" style="display:none;">
+                    <div style="font-size:11px;color:#888;margin-bottom:5px;">
+                        Upload a signature image (PNG transparent background recommended):
+                    </div>
+                    <div onclick="document.getElementById('sig-upload').click()"
+                         style="border:2px dashed #dee2e6;border-radius:10px;height:120px;
+                                display:flex;flex-direction:column;align-items:center;
+                                justify-content:center;cursor:pointer;background:#fafafa;"
+                         onmouseover="this.style.borderColor='var(--green)'"
+                         onmouseout="this.style.borderColor='#dee2e6'">
+                        <i class="fas fa-cloud-upload-alt" style="font-size:24px;color:#aaa;margin-bottom:6px;"></i>
+                        <div style="font-size:12px;font-weight:600;color:#555;">Click to upload signature</div>
+                        <div style="font-size:11px;color:#aaa;">PNG, JPG supported</div>
+                    </div>
+                    <input type="file" id="sig-upload" accept="image/*" style="display:none;"
+                           onchange="previewUploadedSignature(this)"/>
+                </div>
+
+                <!-- SAVED SIGNATURE PREVIEW -->
+                <div style="margin-top:14px;border-top:1px solid #e2e8f0;padding-top:12px;">
+                    <div style="font-size:11px;font-weight:700;color:#555;margin-bottom:6px;">
+                        Current Saved Signature
+                    </div>
+                    <div style="background:#111;border-radius:10px;height:80px;
+                                display:flex;align-items:center;justify-content:center;overflow:hidden;">
+                        <img id="saved-sig-preview" src="" style="display:none;max-height:100%;max-width:100%;object-fit:contain;"/>
+                        <span id="saved-sig-placeholder" style="color:rgba(255,255,255,0.3);font-size:12px;">
+                            No signature saved yet
+                        </span>
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;">
+                        <span id="sig-status"
+                              style="background:#f8f9fa;color:#888;border-radius:20px;
+                                     padding:4px 12px;font-size:11px;font-weight:700;">
+                            <i class="fas fa-clock me-1"></i>Not yet saved
+                        </span>
+                        <span id="sig-timestamp" style="font-size:10px;color:#aaa;"></span>
+                    </div>
+                </div>
             </div>
-            <div style="margin-top:24px;text-align:center;">
-                <button type="submit" class="btn-green" style="padding:12px 64px;font-size:15px;letter-spacing:1px;">SAVE</button>
-            </div>
-        </form>
+        </div>
+
     </div>
 </div>
 
 @section Styles {
 <style>
-    .profile-label { font-size:11px; font-weight:700; color:#555; margin-bottom:5px; display:block; letter-spacing:0.3px; }
+    .profile-label      { font-size:11px; font-weight:700; color:#555; margin-bottom:5px; display:block; letter-spacing:0.3px; }
     .profile-input-wrap { position:relative; }
-    .profile-input { width:100%; border:1px solid #d1d5db; border-radius:8px; padding:10px 40px 10px 13px; font-size:13px; font-family:inherit; color:#1a1a2e; outline:none; transition:border-color 0.2s,box-shadow 0.2s; background:white; appearance:none; }
-    .profile-input:focus { border-color:#1a4731; box-shadow:0 0 0 3px rgba(26,71,49,0.1); }
-    .profile-edit-icon { position:absolute; right:12px; top:50%; transform:translateY(-50%); color:#aaa; font-size:12px; pointer-events:none; }
+    .profile-input      { width:100%; border:1px solid #d1d5db; border-radius:8px; padding:10px 40px 10px 13px; font-size:13px; font-family:inherit; color:#1a1a2e; outline:none; transition:border-color 0.2s,box-shadow 0.2s; background:white; appearance:none; }
+    .profile-input:focus{ border-color:#1a4731; box-shadow:0 0 0 3px rgba(26,71,49,0.1); }
+    .profile-edit-icon  { position:absolute; right:12px; top:50%; transform:translateY(-50%); color:#aaa; font-size:12px; pointer-events:none; }
 </style>
 }
 
 @section Scripts {
 <script>
+// ── PASSWORD TOGGLE ──
 function togglePw() {
     const f = document.getElementById('pw-field');
     const i = document.getElementById('pw-icon');
     if (f.type === 'password') { f.type = 'text';     i.className = 'fas fa-eye'; }
     else                        { f.type = 'password'; i.className = 'fas fa-eye-slash'; }
-}
-
-@if (hasPosition)
-{
-<text>
-// ── TAB SWITCHING ──
-function switchTab(tab) {
-    const esig = document.getElementById('panel-esig');
-    const info = document.getElementById('panel-info');
-    const bE   = document.getElementById('tab-esig');
-    const bI   = document.getElementById('tab-info');
-    if (tab === 'esig') {
-        esig.style.display = ''; info.style.display = 'none';
-        bE.style.cssText = 'padding:9px 22px;border-radius:8px;border:none;background:var(--green);color:white;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;';
-        bI.style.cssText = 'padding:9px 22px;border-radius:8px;border:1.5px solid #dee2e6;background:white;color:#555;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;';
-    } else {
-        esig.style.display = 'none'; info.style.display = '';
-        bI.style.cssText = 'padding:9px 22px;border-radius:8px;border:none;background:var(--green);color:white;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;';
-        bE.style.cssText = 'padding:9px 22px;border-radius:8px;border:1.5px solid #dee2e6;background:white;color:#555;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;';
-    }
 }
 
 // ── SIGNATURE MODE ──
@@ -311,55 +302,98 @@ function switchMode(mode) {
     const bU = document.getElementById('mode-upload');
     if (mode === 'draw') {
         dp.style.display = ''; up.style.display = 'none';
-        bD.style.cssText = 'flex:1;padding:8px;border-radius:8px;border:none;background:var(--green);color:white;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;';
-        bU.style.cssText = 'flex:1;padding:8px;border-radius:8px;border:1.5px solid #dee2e6;background:white;color:#555;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;';
+        bD.style.cssText = 'flex:1;padding:8px;border-radius:8px;border:none;background:var(--green);color:white;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;';
+        bU.style.cssText = 'flex:1;padding:8px;border-radius:8px;border:1.5px solid #dee2e6;background:white;color:#555;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;';
     } else {
         dp.style.display = 'none'; up.style.display = '';
-        bU.style.cssText = 'flex:1;padding:8px;border-radius:8px;border:none;background:var(--green);color:white;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;';
-        bD.style.cssText = 'flex:1;padding:8px;border-radius:8px;border:1.5px solid #dee2e6;background:white;color:#555;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;';
+        bU.style.cssText = 'flex:1;padding:8px;border-radius:8px;border:none;background:var(--green);color:white;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;';
+        bD.style.cssText = 'flex:1;padding:8px;border-radius:8px;border:1.5px solid #dee2e6;background:white;color:#555;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;';
     }
 }
 
 // ── CANVAS ──
-const canvas  = document.getElementById('sig-canvas');
-const ctx     = canvas.getContext('2d');
+const canvas = document.getElementById('sig-canvas');
+const ctx    = canvas.getContext('2d');
 let drawing = false, lastX = 0, lastY = 0;
 
 function resizeCanvas() {
     const d = canvas.toDataURL();
-    canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight;
-    const img = new Image(); img.onload = () => ctx.drawImage(img, 0, 0); img.src = d;
+    canvas.width  = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+    const img = new Image();
+    img.onload = () => ctx.drawImage(img, 0, 0);
+    img.src = d;
 }
-window.addEventListener('resize', resizeCanvas); resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
 
 function getPos(e) {
-    const r = canvas.getBoundingClientRect();
-    const sx = canvas.width / r.width, sy = canvas.height / r.height;
+    const r  = canvas.getBoundingClientRect();
+    const sx = canvas.width  / r.width;
+    const sy = canvas.height / r.height;
     return e.touches
         ? { x: (e.touches[0].clientX - r.left) * sx, y: (e.touches[0].clientY - r.top) * sy }
-        : { x: (e.clientX - r.left) * sx, y: (e.clientY - r.top) * sy };
+        : { x: (e.clientX - r.left) * sx,             y: (e.clientY - r.top) * sy };
 }
+
 function draw(e) {
     if (!drawing) return;
     const p = getPos(e);
-    ctx.beginPath(); ctx.moveTo(lastX, lastY); ctx.lineTo(p.x, p.y);
-    ctx.strokeStyle = 'white'; ctx.lineWidth = 2.5; ctx.lineCap = 'round'; ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(lastX, lastY);
+    ctx.lineTo(p.x, p.y);
+    ctx.strokeStyle = 'white';
+    ctx.lineWidth   = 2.5;
+    ctx.lineCap     = 'round';
+    ctx.stroke();
     lastX = p.x; lastY = p.y;
 }
-canvas.addEventListener('mousedown',  e => { drawing = true;  const p = getPos(e); lastX = p.x; lastY = p.y; });
+
+canvas.addEventListener('mousedown',  e => { drawing = true; const p = getPos(e); lastX = p.x; lastY = p.y; });
 canvas.addEventListener('mousemove',  draw);
 canvas.addEventListener('mouseup',    () => drawing = false);
 canvas.addEventListener('mouseleave', () => drawing = false);
-canvas.addEventListener('touchstart', e => { e.preventDefault(); drawing = true;  const p = getPos(e); lastX = p.x; lastY = p.y; }, { passive: false });
-canvas.addEventListener('touchmove',  e => { e.preventDefault(); draw(e); },                                                           { passive: false });
+canvas.addEventListener('touchstart', e => { e.preventDefault(); drawing = true; const p = getPos(e); lastX = p.x; lastY = p.y; }, { passive: false });
+canvas.addEventListener('touchmove',  e => { e.preventDefault(); draw(e); }, { passive: false });
 canvas.addEventListener('touchend',   () => drawing = false);
 
-function clearCanvas()        { ctx.clearRect(0, 0, canvas.width, canvas.height); }
-function saveDrawnSignature() { setSavedSignature(canvas.toDataURL('image/png')); }
+function clearCanvas() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
+
+function saveDrawnSignature() {
+    setSavedSignature(canvas.toDataURL('image/png'));
+}
+
 function previewUploadedSignature(input) {
     if (!input.files || !input.files[0]) return;
+    if (input.files[0].size > 5 * 1024 * 1024) {
+        alert('Image is too large. Please upload an image under 5MB.');
+        input.value = '';
+        return;
+    }
     const reader = new FileReader();
-    reader.onload = e => setSavedSignature(e.target.result);
+    reader.onload = e => {
+        const img = new Image();
+        img.onload = () => {
+            const tmp  = document.createElement('canvas');
+            tmp.width  = img.naturalWidth;
+            tmp.height = img.naturalHeight;
+            const tCtx = tmp.getContext('2d');
+            tCtx.fillStyle = '#111111';
+            tCtx.fillRect(0, 0, tmp.width, tmp.height);
+            tCtx.drawImage(img, 0, 0);
+            const d = tCtx.getImageData(0, 0, tmp.width, tmp.height);
+            for (let i = 0; i < d.data.length; i += 4) {
+                d.data[i]   = 255 - d.data[i];
+                d.data[i+1] = 255 - d.data[i+1];
+                d.data[i+2] = 255 - d.data[i+2];
+            }
+            tCtx.putImageData(d, 0, 0);
+            setSavedSignature(tmp.toDataURL('image/png'));
+        };
+        img.src = e.target.result;
+    };
     reader.readAsDataURL(input.files[0]);
 }
 
@@ -372,35 +406,84 @@ function setSavedSignature(dataUrl) {
     const st   = document.getElementById('sig-status');
     const ts   = document.getElementById('sig-timestamp');
 
-    prev.src = dataUrl; prev.style.display = ''; ph.style.display = 'none';
-    st.innerHTML  = '<i class="fas fa-spinner fa-spin me-1"></i>Saving...';
-    st.style.cssText = 'background:#f8f9fa;color:#888;border-radius:20px;padding:5px 14px;font-size:12px;font-weight:700;';
+    prev.src           = dataUrl;
+    prev.style.display = '';
+    ph.style.display   = 'none';
+    st.innerHTML       = '<i class="fas fa-spinner fa-spin me-1"></i>Saving...';
+    st.style.cssText   = 'background:#f8f9fa;color:#888;border-radius:20px;padding:4px 12px;font-size:11px;font-weight:700;';
 
     fetch('/Student/SaveSignature', {
-        method: 'POST',
+        method:  'POST',
         headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': _csrf },
-        body: JSON.stringify({ signatureData: dataUrl })
-    }).then(r => r.json()).then(d => {
+        body:    JSON.stringify({ signatureData: dataUrl })
+    })
+    .then(r => r.json())
+    .then(d => {
         if (d.success) {
-            st.innerHTML  = '<i class="fas fa-check-circle me-1"></i>Verified & Active';
-            st.style.cssText = 'background:#e6f4ea;color:var(--green-accent);border-radius:20px;padding:5px 14px;font-size:12px;font-weight:700;';
-            ts.textContent = 'Saved at ' + new Date().toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit' });
+            st.innerHTML     = '<i class="fas fa-check-circle me-1"></i>Verified & Active';
+            st.style.cssText = 'background:#e6f4ea;color:var(--green-accent);border-radius:20px;padding:4px 12px;font-size:11px;font-weight:700;';
+            ts.textContent   = 'Saved at ' + new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
         } else {
-            st.innerHTML  = '<i class="fas fa-exclamation-circle me-1"></i>Save failed';
-            st.style.cssText = 'background:#fff5f5;color:#e53e3e;border-radius:20px;padding:5px 14px;font-size:12px;font-weight:700;';
+            st.innerHTML     = '<i class="fas fa-exclamation-circle me-1"></i>Save failed';
+            st.style.cssText = 'background:#fff5f5;color:#e53e3e;border-radius:20px;padding:4px 12px;font-size:11px;font-weight:700;';
         }
-    }).catch(() => {
-        st.innerHTML  = '<i class="fas fa-exclamation-circle me-1"></i>Save failed';
-        st.style.cssText = 'background:#fff5f5;color:#e53e3e;border-radius:20px;padding:5px 14px;font-size:12px;font-weight:700;';
+    })
+    .catch(() => {
+        st.innerHTML     = '<i class="fas fa-exclamation-circle me-1"></i>Save failed';
+        st.style.cssText = 'background:#fff5f5;color:#e53e3e;border-radius:20px;padding:4px 12px;font-size:11px;font-weight:700;';
     });
 }
 
-// ── LOAD SAVED ──
-(function() {
+// ── LOAD SAVED SIGNATURE ON PAGE LOAD ──
+(function () {
     const saved = '@Html.Raw(Model?.SignaturePath ?? "")';
-    if (saved && saved.startsWith('data:')) setSavedSignature(saved);
+    if (saved && saved.startsWith('data:')) {
+        const prev = document.getElementById('saved-sig-preview');
+        const ph   = document.getElementById('saved-sig-placeholder');
+        const st   = document.getElementById('sig-status');
+        prev.src           = saved;
+        prev.style.display = '';
+        ph.style.display   = 'none';
+        st.innerHTML       = '<i class="fas fa-check-circle me-1"></i>Verified & Active';
+        st.style.cssText   = 'background:#e6f4ea;color:var(--green-accent);border-radius:20px;padding:4px 12px;font-size:11px;font-weight:700;';
+    }
 })();
-</text>
+
+// ── SECTION DROPDOWN ──
+const courseSelect  = document.getElementById('course-select');
+const yearSelect    = document.getElementById('year-select');
+const sectionSelect = document.getElementById('section-select');
+const yearMap       = { '1st Year': 1, '2nd Year': 2, '3rd Year': 3, '4th Year': 4 };
+const currentSection = '@Html.Raw(Model?.Section ?? "")';
+
+const allSections = [
+@foreach (var s in (Model?.AvailableSections ?? new List<OnlineClearanceSystem.Models.SectionItem>()))
+{
+    @:{ sectionName: '@s.SectionName', yearLevel: @s.YearLevel, courseCode: '@s.CourseCode' },
 }
+];
+
+function loadSections() {
+    const courseCode = courseSelect.value;
+    const yearInt    = yearMap[yearSelect.value] ?? 0;
+    if (!courseCode || !yearInt) {
+        sectionSelect.innerHTML = '<option value="">-- Select Course & Year first --</option>';
+        return;
+    }
+    const filtered = allSections.filter(s => s.courseCode === courseCode && s.yearLevel === yearInt);
+    if (!filtered.length) {
+        sectionSelect.innerHTML = '<option value="">No sections available</option>';
+        return;
+    }
+    sectionSelect.innerHTML =
+        '<option value="">-- Select Section --</option>' +
+        filtered.map(s =>
+            `<option value="${s.sectionName}" ${s.sectionName === currentSection ? 'selected' : ''}>${s.sectionName}</option>`
+        ).join('');
+}
+
+courseSelect.addEventListener('change', loadSections);
+yearSelect.addEventListener('change',   loadSections);
+if (courseSelect.value && yearSelect.value) loadSections();
 </script>
 }

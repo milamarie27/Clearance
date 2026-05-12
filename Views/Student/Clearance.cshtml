@@ -1,56 +1,73 @@
-@model IEnumerable<OnlineClearanceSystem.Models.StudentClearanceItem>
+@* ═══════════════════════════════════════════════════════════════════════════
+   Views/Student/Clearance.cshtml  — Unified Subject + Organization Clearance
+   ═══════════════════════════════════════════════════════════════════════════ *@
+@model OnlineClearanceSystem.Models.StudentClearanceViewModel
 @{
     ViewData["Title"]      = "Clearance";
     ViewData["ActivePage"] = "Clearance";
     Layout = "~/Views/Shared/_StudentLayout.cshtml";
 
-    bool hasSubjects = Model != null && Model.Any();
-    bool hasConfirmed = TempData["ConfirmedSubjects"] != null
-                        || ViewData["HasConfirmed"] is true;
+    bool hasSubjects = Model?.SubjectItems != null && Model.SubjectItems.Any();
+    var  adviser     = Model?.ClassAdviser;
 }
 
-<div class="welcome-card mb-4">
-    <div>
-        <h4>Welcome,</h4>
-        <h2>@(ViewData["UserName"] ?? "Student")!</h2>
+@Html.AntiForgeryToken()
+
+@* ── Alerts ───────────────────────────────────────────────────────────── *@
+@if (TempData["OrgSuccess"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show mb-3">
+        <i class="fas fa-check-circle me-2"></i>@TempData["OrgSuccess"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
-    <div class="period-box">
-        <div class="period-icon"><i class="fas fa-calendar-alt"></i></div>
-        <div>
-            <div class="period-label">Active Academic Period</div>
-            <div class="period-value">A.Y. 2025-2026, 2nd Semester</div>
-        </div>
-        <span class="active-badge">Active</span>
+}
+@if (TempData["OrgError"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show mb-3">
+        <i class="fas fa-exclamation-circle me-2"></i>@TempData["OrgError"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
+}
+
+<div class="d-flex align-items-center justify-content-between mb-3">
+    <h5 class="fw-bold mb-0" style="color:#1a1a2e;"></h5>
+    <span class="semester-badge">
+        <i class="fas fa-calendar-alt me-2"></i>
+        @(ViewData["ActivePeriod"]?.ToString() ?? "A.Y. 2025-2026, 2nd Semester")
+    </span>
 </div>
 
-<div class="page-card">
-    <div class="page-card-hd dark">
-        <i class="fas fa-clipboard-list me-2"></i>SUBJECT ENROLLED
-    </div>
+@* ══════════════════════════════════════════════════════════════════════════
+   SECTION 1 — SUBJECT CLEARANCE
+   ══════════════════════════════════════════════════════════════════════════ *@
+ 
 
+<div class="page-card mb-4">
+    <div class="page-card-hd dark">
+        <i class="fas fa-clipboard-list me-2"></i>Subjects Clearance
+    </div>
     <div class="table-responsive">
         <table class="data-table">
             <thead>
                 <tr>
-                    <th>CODE</th>
-                    <th>SUBJECT</th>
-                    <th>DESCRIPTION</th>
-                    <th>INSTRUCTOR</th>
-                    <th>STATUS</th>
+                    <th>Code</th>
+                    <th>Subject</th>
+                    <th>Description</th>
+                    <th>Instructor</th>
+                    <th style="text-align:center;">Status</th>
                 </tr>
             </thead>
             <tbody>
                 @if (hasSubjects)
                 {
-                    @foreach (var item in Model!)
+                    foreach (var item in Model!.SubjectItems!)
                     {
                         <tr>
                             <td><span class="code-badge">@item.MisCode</span></td>
                             <td style="font-weight:600;">@item.SubjectCode</td>
                             <td>@item.Description</td>
                             <td>@item.InstructorName</td>
-                            <td>
+                            <td style="text-align:center;">
                                 @if (item.Status == "Cleared")
                                 {
                                     <span class="status-approved">Cleared</span>
@@ -61,8 +78,10 @@
                                 }
                                 else
                                 {
-                                    <button class="btn-request" onclick="requestSignature(this)">
-                                        <i class="fas fa-paper-plane me-1"></i>Request
+                                    <button class="btn-request"
+                                                onclick="requestOrg(this)"
+                                                data-org="@item.MisCode">
+                                            <i class="fas fa-redo me-1"></i>Re-request
                                     </button>
                                 }
                             </td>
@@ -71,16 +90,15 @@
                 }
                 else
                 {
-                    <!-- EMPTY STATE -->
                     <tr>
                         <td colspan="5">
                             <div class="empty-state">
                                 <div class="empty-icon">
                                     <i class="fas fa-clipboard-list"></i>
                                 </div>
-                                <div class="empty-title">No subjects enrolled yet</div>
+                                <div class="empty-title">No selected subjects yet</div>
                                 <div class="empty-desc">
-                                    You haven't confirmed your subjects yet.<br/>
+                                    You haven't confirmed your subjects yet.<br />
                                     Go to <strong>Subjects Offered</strong> to select
                                     and confirm your enrolled subjects first.
                                 </div>
@@ -100,8 +118,216 @@
     </div>
 </div>
 
+@* ══════════════════════════════════════════════════════════════════════════
+   SECTION 2 — ORGANIZATION CLEARANCE
+   ══════════════════════════════════════════════════════════════════════════ *@
+ 
+
+@* ── Class Adviser Card ───────────────────────────────────────────────── *@
+@if (adviser != null)
+{
+    <div class="page-card mb-3">
+        <div class="page-card-hd dark">
+            <i class="fas fa-chalkboard-teacher me-2"></i>Class Adviser
+        </div>
+        <div class="adviser-card-body">
+
+            <div class="adviser-meta-col">
+                <div class="adviser-label">Advisory</div>
+                <div class="adviser-value">@adviser.OrgRole</div>
+            </div>
+
+            <div class="adviser-divider"></div>
+
+            <div class="adviser-meta-col">
+                <div class="adviser-label">Adviser</div>
+                <div class="adviser-value">@adviser.PersonName</div>
+            </div>
+
+            <div class="adviser-actions">
+
+                @* ── Status badge ── *@
+                @switch (adviser.Status)
+                {
+                    case "Cleared":
+                        <span class="status-approved">Cleared</span>
+                        break;
+                    case "Declined":
+                        <span class="status-declined">Declined</span>
+                        break;
+                    case "Pending":
+                        <span class="status-pending">Pending</span>
+                        break;
+                    default:
+                        <span class="adviser-no-status">—</span>
+                        break;
+                }
+
+                @* ── Action ── *@
+                @switch (adviser.Status)
+                {
+                    case "Cleared":
+                        <span class="adviser-cleared-label">
+                            <i class="fas fa-check-circle me-1"></i>Cleared
+                        </span>
+                        break;
+                    case "Pending":
+                        <span class="adviser-pending-label">
+                            <i class="fas fa-clock me-1"></i>Awaiting Approval
+                        </span>
+                        break;
+                    case "Declined":
+                        <button class="btn-request"
+                                onclick="requestOrg(this)"
+                                data-org="Class Adviser">
+                            <i class="fas fa-redo me-1"></i>Re-request
+                        </button>
+                        break;
+                    default:
+                        <button class="btn-request"
+                                onclick="requestOrg(this)"
+                                data-org="Class Adviser">
+                            <i class="fas fa-paper-plane me-1"></i>Request
+                        </button>
+                        break;
+                }
+
+            </div>
+        </div>
+    </div>
+}
+
+@* ── Organisation Signatories Table ──────────────────────────────────── *@
+<div class="page-card mb-4">
+    <div class="page-card-hd dark">
+        <i class="fas fa-sitemap me-2"></i>Organization Clearance
+    </div>
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th style="width:60px;text-align:center;">No.</th>
+                    <th>Position</th>
+                    <th>Signatory</th>
+                    <th style="text-align:center;">Status</th>
+                    <th style="text-align:center;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model?.OrgItems != null && Model.OrgItems.Any())
+                {
+                    int i = 1;
+                    foreach (var item in Model.OrgItems)
+                    {
+                        <tr>
+                            <td style="text-align:center;">
+                                <span class="code-badge">@i.ToString("D2")</span>
+                            </td>
+                            <td style="font-weight:600;">@item.OrgRole</td>
+                            <td>@item.PersonName</td>
+
+                            @* ── Status badge ── *@
+                            <td style="text-align:center;">
+                                @switch (item.Status)
+                                {
+                                    case "Cleared":
+                                        <span class="status-approved">Cleared</span>
+                                        break;
+                                    case "Declined":
+                                        <span class="status-declined">Declined</span>
+                                        break;
+                                    case "Pending":
+                                        <span class="status-pending">Pending</span>
+                                        break;
+                                    default:
+                                        <span style="color:#aaa;font-size:12px;">—</span>
+                                        break;
+                                }
+                            </td>
+
+                            @* ── Action column ── *@
+                            <td style="text-align:center;">
+                                @switch (item.Status)
+                                {
+                                    case "Cleared":
+                                        <span style="color:#2e7d32;font-size:12px;font-weight:600;">
+                                            <i class="fas fa-check-circle me-1"></i>Cleared
+                                        </span>
+                                        break;
+
+                                    case "Pending":
+                                        @if (item.IsSelfSignatory)
+                                        {
+                                            <button class="btn-approve"
+                                                    onclick="selfApproveOrg(this, true)"
+                                                    data-org="@item.OrgName">
+                                                <i class="fas fa-check me-1"></i>Approve
+                                            </button>
+                                            <button class="btn-decline"
+                                                    onclick="selfApproveOrg(this, false)"
+                                                    data-org="@item.OrgName"
+                                                    style="margin-left:6px;">
+                                                <i class="fas fa-times me-1"></i>Decline
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <span style="color:#e6a817;font-size:12px;font-weight:600;">
+                                                <i class="fas fa-clock me-1"></i>Awaiting Approval
+                                            </span>
+                                        }
+                                        break;
+
+                                    case "Declined":
+                                        <button class="btn-request"
+                                                onclick="requestOrg(this)"
+                                                data-org="@item.OrgName">
+                                            <i class="fas fa-redo me-1"></i>Re-request
+                                        </button>
+                                        break;
+
+                                    default:
+                                        <button class="btn-request"
+                                                onclick="requestOrg(this)"
+                                                data-org="@item.OrgName">
+                                            <i class="fas fa-paper-plane me-1"></i>Request
+                                        </button>
+                                        break;
+                                }
+                            </td>
+                        </tr>
+                        i++;
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="5" style="padding:40px;text-align:center;color:#888;">
+                            <i class="fas fa-sitemap"
+                               style="font-size:28px;color:#ddd;display:block;margin-bottom:10px;"></i>
+                            No organization signatories assigned to your curriculum yet.
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
 @section Styles {
 <style>
+    /* ── Section label ── */
+    .section-label {
+        font-size: 13px;
+        font-weight: 700;
+        color: #1a1a2e;
+        text-transform: uppercase;
+        letter-spacing: .07em;
+        margin-bottom: 10px;
+        padding-left: 2px;
+    }
+
+    /* ── Empty state ── */
     .empty-state {
         display: flex;
         flex-direction: column;
@@ -120,54 +346,205 @@
         font-size: 28px; color: #16a34a;
         margin-bottom: 4px;
     }
-    .empty-title {
-        font-size: 16px; font-weight: 700;
-        color: #1a1a2e;
+    .empty-title { font-size: 16px; font-weight: 700; color: #1a1a2e; }
+    .empty-desc  { font-size: 13px; color: #888; line-height: 1.7; max-width: 340px; }
+
+    /* ── Class Adviser card ── */
+    .adviser-card-body {
+        padding: 20px 24px;
+        display: flex;
+        align-items: center;
+        gap: 24px;
+        flex-wrap: wrap;
     }
-    .empty-desc {
-        font-size: 13px; color: #888;
-        line-height: 1.7; max-width: 340px;
+    .adviser-label {
+        font-size: 11px;
+        font-weight: 700;
+        color: #888;
+        text-transform: uppercase;
+        letter-spacing: .06em;
+        margin-bottom: 4px;
+    }
+    .adviser-value    { font-weight: 700; font-size: 15px; color: #1a1a2e; }
+    .adviser-divider  { width: 1px; height: 36px; background: #e0e0e0; flex-shrink: 0; }
+    .adviser-actions  { margin-left: auto; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+    .adviser-no-status    { color: #aaa; font-size: 12px; }
+    .adviser-cleared-label { color: #2e7d32; font-size: 12px; font-weight: 600; }
+    .adviser-pending-label { color: #e6a817; font-size: 12px; font-weight: 600; }
+
+    /* ── Buttons ── */
+    .btn-request {
+        background: var(--green);
+        color: #fff;
+        border: none;
+        border-radius: 7px;
+        padding: 6px 16px;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        font-family: inherit;
+        transition: opacity .2s;
+    }
+    .btn-request:hover    { opacity: .85; }
+    .btn-request:disabled { opacity: .5; cursor: not-allowed; }
+
+    .btn-approve {
+        background: #2e7d32;
+        color: #fff;
+        border: none;
+        border-radius: 7px;
+        padding: 6px 14px;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        font-family: inherit;
+        transition: opacity .2s;
+    }
+    .btn-approve:hover    { opacity: .85; }
+    .btn-approve:disabled { opacity: .5; cursor: not-allowed; }
+
+    .btn-decline {
+        background: #c62828;
+        color: #fff;
+        border: none;
+        border-radius: 7px;
+        padding: 6px 14px;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        font-family: inherit;
+        transition: opacity .2s;
+    }
+    .btn-decline:hover    { opacity: .85; }
+    .btn-decline:disabled { opacity: .5; cursor: not-allowed; }
+
+    /* ── Status badges ── */
+    .status-pending {
+        background: #fff8e1; color: #e6a817;
+        border-radius: 20px; padding: 4px 12px;
+        font-size: 11px; font-weight: 700;
+    }
+    .status-approved {
+        background: #e8f5e9; color: #2e7d32;
+        border-radius: 20px; padding: 4px 12px;
+        font-size: 11px; font-weight: 700;
+    }
+    .status-declined {
+        background: #fce4ec; color: #c62828;
+        border-radius: 20px; padding: 4px 12px;
+        font-size: 11px; font-weight: 700;
     }
 </style>
 }
 
-@Html.AntiForgeryToken()
-
 @section Scripts {
 <script>
-function requestSignature(btn) {
-    const row     = btn.closest('tr');
-    const misCode = row.querySelector('.code-badge')?.textContent?.trim();
-    if (!misCode) return;
+    const _csrf = document.querySelector('input[name="__RequestVerificationToken"]')?.value ?? '';
 
-    const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value ?? '';
+    // ── Subject Clearance ─────────────────────────────────────────────────
+    function requestSubjectSignature(btn) {
+        const row     = btn.closest('tr');
+        const misCode = row.querySelector('.code-badge')?.textContent?.trim();
+        if (!misCode) return;
 
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Sending...';
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Sending…';
 
-    fetch('/Student/RequestSubjectSignature', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'RequestVerificationToken': token
-        },
-        body: JSON.stringify({ misCode: misCode })
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.success) {
-            btn.parentElement.innerHTML = '<span class="status-pending">Pending</span>';
-        } else {
+        fetch('/Student/RequestSubjectSignature', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': _csrf },
+            body:    JSON.stringify({ misCode })
+        })
+        .then(r => r.json())
+        .then(d => {
+            if (d.success) {
+                btn.parentElement.innerHTML = '<span class="status-pending">Pending</span>';
+            } else {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-paper-plane me-1"></i>Request';
+                alert('Error: ' + (d.error ?? 'Unknown error'));
+            }
+        })
+        .catch(() => {
             btn.disabled = false;
             btn.innerHTML = '<i class="fas fa-paper-plane me-1"></i>Request';
-            alert('Error: ' + (data.error ?? 'Unknown error'));
-        }
-    })
-    .catch(() => {
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-paper-plane me-1"></i>Request';
-        alert('Request failed. Please try again.');
-    });
-}
+            alert('Request failed. Please try again.');
+        });
+    }
+
+    // ── Organization Clearance ────────────────────────────────────────────
+    function requestOrg(btn) {
+        const orgName = btn.getAttribute('data-org');
+        if (!orgName) return;
+
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Sending…';
+
+        fetch('/Student/RequestOrgSignature', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': _csrf },
+            body:    JSON.stringify({ orgName })
+        })
+        .then(r => r.json())
+        .then(d => {
+            if (d.success) {
+                window.location.reload();
+            } else {
+                btn.disabled = false;
+                const isRerequest = btn.textContent.includes('Re-request');
+                btn.innerHTML = isRerequest
+                    ? '<i class="fas fa-redo me-1"></i>Re-request'
+                    : '<i class="fas fa-paper-plane me-1"></i>Request';
+                alert(d.error || 'Could not send request. Please try again.');
+            }
+        })
+        .catch(() => {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-paper-plane me-1"></i>Request';
+            alert('Network error. Please try again.');
+        });
+    }
+
+    function selfApproveOrg(btn, approve) {
+        const orgName = btn.getAttribute('data-org');
+        if (!orgName) return;
+
+        const allBtns = btn.closest('td').querySelectorAll('button');
+        allBtns.forEach(b => b.disabled = true);
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Processing…';
+
+        fetch('/Student/SelfApproveOrg', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': _csrf },
+            body:    JSON.stringify({ orgName, approve })
+        })
+        .then(r => r.json())
+        .then(d => {
+            if (d.success) {
+                window.location.reload();
+            } else {
+                allBtns.forEach(b => b.disabled = false);
+                allBtns.forEach(b => {
+                    if (b.onclick?.toString().includes('true')) {
+                        b.innerHTML = '<i class="fas fa-check me-1"></i>Approve';
+                    } else {
+                        b.innerHTML = '<i class="fas fa-times me-1"></i>Decline';
+                    }
+                });
+                alert(d.error || 'Could not process. Please try again.');
+            }
+        })
+        .catch(() => {
+            allBtns.forEach(b => b.disabled = false);
+            allBtns.forEach(b => {
+                if (b.onclick?.toString().includes('true')) {
+                    b.innerHTML = '<i class="fas fa-check me-1"></i>Approve';
+                } else {
+                    b.innerHTML = '<i class="fas fa-times me-1"></i>Decline';
+                }
+            });
+            alert('Network error. Please try again.');
+        });
+    }
 </script>
 }

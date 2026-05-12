@@ -105,7 +105,7 @@
                                 @if (row.Status == "Cleared" && !string.IsNullOrEmpty(row.SignatureBase64))
                                 {
                                     <img src="@row.SignatureBase64"
-                                         style="max-height:40px;max-width:90px;object-fit:contain;" />
+                                         style="max-height:40px;max-width:90px;object-fit:contain;filter:invert(1);" />
                                 }
                                 else if (row.Status == "Cleared")
                                 {
@@ -139,6 +139,7 @@
             <thead>
                 <tr style="background:#1a4731;color:white;">
                     <th style="padding:7px 10px;text-align:left;">#</th>
+                    <th style="padding:7px 10px;text-align:left;">Organization</th>
                     <th style="padding:7px 10px;text-align:left;">Role</th>
                     <th style="padding:7px 10px;text-align:left;">Person</th>
                     <th style="padding:7px 10px;text-align:center;">Signature</th>
@@ -152,6 +153,7 @@
                     {
                         <tr style="border-bottom:1px solid #dee2e6;">
                             <td style="padding:6px 10px;">@i</td>
+                            <td style="padding:6px 10px;">@row.OrgName</td>
                             <td style="padding:6px 10px;">@row.Role</td>
                             <td style="padding:6px 10px;">@row.PersonName</td>
                             <td style="padding:6px 10px;text-align:center;
@@ -159,7 +161,7 @@
                                 @if (row.Status == "Cleared" && !string.IsNullOrEmpty(row.SignatureBase64))
                                 {
                                     <img src="@row.SignatureBase64"
-                                         style="max-height:40px;max-width:90px;object-fit:contain;" />
+                                         style="max-height:40px;max-width:90px;object-fit:contain;filter:invert(1);" />
                                 }
                                 else if (row.Status == "Cleared")
                                 {
@@ -177,7 +179,7 @@
                 else
                 {
                     <tr>
-                        <td colspan="4"
+                        <td colspan="5"
                             style="padding:20px;text-align:center;color:#888;font-style:italic;">
                             No organization signatories assigned yet.
                         </td>

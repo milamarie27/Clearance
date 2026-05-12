@@ -10,76 +10,211 @@
     .check-box i { display: none; font-size: 12px; }
     .check-box.active { background: var(--green); border-color: var(--green); }
     .check-box.active i { display: block; color: white; }
+
+    /* ── STAT ROW ── */
+    .stat-row {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 18px;
+        align-items: stretch;
+    }
+
+    /* ── STAT CARD ── */
+    .stat-card {
+        flex: 1 1 0;
+        border-radius: 12px;
+        padding: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        border: none;
+        min-width: 0;
+        min-height: 100px;
+    }
+    .stat-card.green-card  { background: linear-gradient(135deg, #1e7a46, #28a745); }
+    .stat-card.orange-card { background: linear-gradient(135deg, #b8560a, #e07b2a); }
+    .stat-card.blue-card   { background: linear-gradient(135deg, #1a5fa8, #3182ce); }
+
+    .stat-num   { font-size: 28px; font-weight: 800; color: #ffffff; line-height: 1; }
+    .stat-label { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.9); margin-top: 3px; }
+    .stat-sub   { font-size: 11px; color: rgba(255,255,255,0.65); margin-top: 2px; }
+
+    .stat-icon-wrap {
+        width: 48px; height: 48px;
+        border-radius: 12px;
+        background: rgba(255,255,255,0.2);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 20px;
+        color: white;
+        flex-shrink: 0;
+    }
+
+    /* ── PERIOD CARD ── */
+    .period-card {
+        flex: 1 1 0;
+        background: linear-gradient(135deg, #1a3a5c, #2b5282);
+        border: none;
+        border-radius: 12px;
+        padding: 18px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        cursor: pointer;
+        position: relative;
+        min-width: 0;
+        min-height: 100px;
+        transition: filter 0.2s;
+        user-select: none;
+        justify-content: space-between;
+    }
+    .period-card:hover { filter: brightness(1.1); }
+    .period-card-inner { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .period-icon {
+        width: 48px; height: 48px;
+        border-radius: 12px;
+        background: rgba(255,255,255,0.2);
+        display: flex; align-items: center; justify-content: center;
+        flex-shrink: 0;
+    }
+    .period-icon i { color: white; font-size: 20px; }
+    .period-card-label { font-size: 11px; color: rgba(255,255,255,0.65); margin-bottom: 2px; }
+    .period-card-value { font-size: 13px; font-weight: 700; color: #ffffff; line-height: 1.4; }
+    .period-chevron {
+        color: rgba(255,255,255,0.7);
+        font-size: 12px;
+        transition: transform 0.2s;
+        flex-shrink: 0;
+    }
+    .period-card.open .period-chevron { transform: rotate(180deg); }
+
+    /* active badge override for colored bg */
+    .period-card .active-badge {
+        background: rgba(255,255,255,0.2);
+        color: #ffffff;
+        border: 1px solid rgba(255,255,255,0.35);
+        margin-top: 5px;
+        display: inline-block;
+    }
+
+    /* ── DROPDOWN ── */
+    .period-dropdown {
+        display: none;
+        position: absolute;
+        top: calc(100% + 8px);
+        right: 0;
+        min-width: 260px;
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+        z-index: 999;
+        padding: 10px;
+        flex-direction: column;
+        gap: 4px;
+    }
+    .period-dropdown.open { display: flex; }
+    .pd-section-label {
+        font-size: 10px; font-weight: 700;
+        text-transform: uppercase; letter-spacing: 0.9px;
+        color: var(--muted); padding: 4px 8px 6px;
+    }
+    .pd-option {
+        padding: 9px 12px;
+        border-radius: 8px;
+        font-size: 12.5px;
+        font-weight: 600;
+        color: var(--text);
+        cursor: pointer;
+        transition: background 0.15s;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .pd-option:hover { background: rgba(255,255,255,0.06); }
+    .pd-option.selected { background: rgba(66,153,225,0.15); color: #63b3ed; }
+    .pd-option.selected::after {
+        content: '\f00c';
+        font-family: 'Font Awesome 6 Free';
+        font-weight: 900;
+        font-size: 11px;
+    }
+    .pd-divider { border: none; border-top: 1px solid var(--border); margin: 4px 0; }
 </style>
 
-<!-- WELCOME BANNER -->
-<div class="welcome-card mb-4">
-    <div>
-        <h4>Welcome,</h4>
-        <h2>@(Model?.StudentName ?? "Student")!</h2>
-    </div>
-    <div class="period-box">
-        <div class="period-icon"><i class="fas fa-calendar-alt"></i></div>
+<!-- ── STAT ROW ── -->
+<div class="stat-row">
+
+    <!-- SUBJECT CLEARED -->
+    <div class="stat-card green-card">
         <div>
-            <div class="period-label">Active Academic Period</div>
-            <div class="period-value">@(Model?.ActivePeriod ?? "A.Y. 2025-2026, 2nd Semester")</div>
+            <div class="stat-num">@(Model?.SubjectCleared ?? 0)</div>
+            <div class="stat-label">Subject Cleared</div>
+            <div class="stat-sub">Total Subjects</div>
         </div>
-        <span class="active-badge">Active</span>
+        <div class="stat-icon-wrap">
+            <i class="fas fa-clipboard-check"></i>
+        </div>
     </div>
+
+    <!-- SUBJECT PENDING -->
+    <div class="stat-card orange-card">
+        <div>
+            <div class="stat-num">@(Model?.SubjectIncomplete ?? 0)</div>
+            <div class="stat-label">Subject Pending</div>
+            <div class="stat-sub">Across all enrolled subjects</div>
+        </div>
+        <div class="stat-icon-wrap">
+            <i class="fas fa-clock"></i>
+        </div>
+    </div>
+
+    <!-- ORGANIZATION CLEARED -->
+    <div class="stat-card blue-card">
+        <div>
+            <div class="stat-num">@(Model?.OrgCleared ?? 0)</div>
+            <div class="stat-label">Organization Cleared</div>
+            <div class="stat-sub">Across all organization signatures</div>
+        </div>
+        <div class="stat-icon-wrap">
+            <i class="fas fa-sitemap"></i>
+        </div>
+    </div>
+
+    <!-- PERIOD CARD -->
+    <div class="period-card" id="period-card" onclick="togglePeriodDropdown()">
+        <div class="period-card-inner">
+            <div class="period-icon"><i class="fas fa-calendar-alt"></i></div>
+            <div>
+                <div class="period-card-label">Active Academic Period</div>
+                <div class="period-card-value" id="period-display">
+                    @(Model?.ActivePeriod ?? "A.Y. 2025–2026, 2nd Semester")
+                </div>
+                <span class="active-badge">Active</span>
+            </div>
+        </div>
+        <i class="fas fa-chevron-down period-chevron"></i>
+
+        <div class="period-dropdown" id="period-dropdown">
+            <div class="pd-section-label">Academic Year</div>
+            <div class="pd-option" data-ay="2023-2024" onclick="selectAY(event,'2023-2024')">A.Y. 2023–2024</div>
+            <div class="pd-option" data-ay="2024-2025" onclick="selectAY(event,'2024-2025')">A.Y. 2024–2025</div>
+            <div class="pd-option selected" data-ay="2025-2026" onclick="selectAY(event,'2025-2026')">A.Y. 2025–2026</div>
+            <div class="pd-option" data-ay="2026-2027" onclick="selectAY(event,'2026-2027')">A.Y. 2026–2027</div>
+            <hr class="pd-divider"/>
+            <div class="pd-section-label">Semester</div>
+            <div class="pd-option" data-sem="1st Semester" onclick="selectSem(event,'1st Semester')">1st Semester</div>
+            <div class="pd-option selected" data-sem="2nd Semester" onclick="selectSem(event,'2nd Semester')">2nd Semester</div>
+            <div class="pd-option" data-sem="Summer" onclick="selectSem(event,'Summer')">Summer</div>
+        </div>
+    </div>
+
 </div>
 
-<!-- STAT CARDS -->
-<div class="row g-3 mb-4">
-    <div class="col-md-4">
-        <div class="stat-card">
-            <div class="stat-icon green">
-                <i class="fas fa-clipboard-check"></i>
-                <span class="stat-dot ok"><i class="fas fa-check"></i></span>
-            </div>
-            <div>
-                <div class="stat-num">
-                    @(Model?.SubjectCleared ?? 0)
-                    <span style="font-size:16px;color:#888;"></span>
-                </div>
-                <div class="stat-label">Subject Cleared</div>
-                <div class="stat-sub">Total Subjects</div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="stat-card">
-            <div class="stat-icon orange">
-                <i class="fas fa-clock"></i>
-                <span class="stat-dot bad"><i class="fas fa-times"></i></span>
-            </div>
-            <div>
-                <div class="stat-num">@(Model?.SubjectIncomplete ?? 0)</div>
-                <div class="stat-label">Subject Incomplete</div>
-                <div class="stat-sub">Across all enrolled subjects</div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="stat-card">
-            <div class="stat-icon blue">
-                <i class="fas fa-sitemap"></i>
-            </div>
-            <div>
-                <div class="stat-num">
-                    @(Model?.OrgCleared ?? 0)
-                    <span style="font-size:16px;color:#888;"></span>
-                </div>
-                <div class="stat-label">Organization Cleared</div>
-                <div class="stat-sub">Across all organization signatures</div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- CHECKLIST + ANNOUNCEMENTS -->
+<!-- ── CHECKLIST + ANNOUNCEMENTS ── -->
 <div class="row g-3">
 
-    <!-- CHECKLIST — steps stay static as requested -->
+    <!-- CHECKLIST -->
     <div class="col-md-5">
         <div class="page-card">
             <div style="background:var(--green);color:white;padding:13px 18px;
@@ -94,7 +229,7 @@
                 </span>
             </div>
             @foreach (var step in new[] {
-                new { title="Step 1: Select Subject",
+                new { title="Step 1: Select Enrolled Subjects",
                       desc="Select the subjects you enrolled." },
                 new { title="Step 2: Confirm Enrolled Subjects",
                       desc="Confirm your selected enrolled subjects, then submit to the assigned Instructor." },
@@ -117,7 +252,7 @@
         </div>
     </div>
 
-    <!-- ANNOUNCEMENTS — from DB -->
+    <!-- ANNOUNCEMENTS -->
     <div class="col-md-7">
         <div style="background:white;border-radius:12px;padding:18px;
                     box-shadow:0 1px 4px rgba(0,0,0,0.07);">
@@ -169,31 +304,21 @@
                                     }
                                     @if (ann.Type == "General" || string.IsNullOrEmpty(ann.Type))
                                     {
-                                        <span class="ann-tag"
-                                              style="background:#f3f4f6;color:#555;">
-                                            General
-                                        </span>
+                                        <span class="ann-tag" style="background:#f3f4f6;color:#555;">General</span>
                                     }
                                 </div>
                             </div>
-                            <div style="font-weight:700;font-size:13px;margin-bottom:6px;">
-                                @ann.Title
-                            </div>
-                            <div style="font-size:12px;color:#555;line-height:1.6;">
-                                @ann.Content
-                            </div>
+                            <div style="font-weight:700;font-size:13px;margin-bottom:6px;">@ann.Title</div>
+                            <div style="font-size:12px;color:#555;line-height:1.6;">@ann.Content</div>
                         </div>
                     }
                 }
                 else
                 {
-                    <!-- Empty announcements state -->
                     <div style="text-align:center;padding:40px 24px;color:#888;">
                         <i class="fas fa-bullhorn"
                            style="font-size:32px;color:#ddd;margin-bottom:12px;display:block;"></i>
-                        <div style="font-size:14px;font-weight:600;color:#aaa;">
-                            No announcements yet
-                        </div>
+                        <div style="font-size:14px;font-weight:600;color:#aaa;">No announcements yet</div>
                         <div style="font-size:12px;margin-top:4px;">
                             Check back later for updates from the Admin.
                         </div>
@@ -206,32 +331,69 @@
 
 @section Scripts {
 <script>
-function filterAnn(tag, btn) {
-    document.querySelectorAll('.ann-tab').forEach(b => {
-        b.style.background  = 'white';
-        b.style.color       = '#555';
-        b.style.borderColor = '#dee2e6';
-    });
-    btn.style.background  = '#28a745';
-    btn.style.color       = 'white';
-    btn.style.borderColor = '#28a745';
+    let selectedAY  = '2025-2026';
+    let selectedSem = '2nd Semester';
 
-    document.querySelectorAll('#ann-list .ann-card').forEach(c => {
-        c.style.display = tag === 'all'
-            ? ''
-            : (c.dataset.tag || '').toLowerCase()
-                .includes(tag.toLowerCase()) ? '' : 'none';
-    });
-}
+    function togglePeriodDropdown() {
+        const card     = document.getElementById('period-card');
+        const dropdown = document.getElementById('period-dropdown');
+        card.classList.toggle('open');
+        dropdown.classList.toggle('open');
+    }
 
-document.querySelectorAll('.check-box').forEach(box => {
-    box.addEventListener('click', () => {
-        box.classList.toggle('active');
-        const total   = document.querySelectorAll('.check-box').length;
-        const checked = document.querySelectorAll('.check-box.active').length;
-        document.getElementById('progress-badge').textContent =
-            `${checked}/${total} Completed`;
+    function selectAY(e, ay) {
+        e.stopPropagation();
+        selectedAY = ay;
+        document.querySelectorAll('[data-ay]').forEach(el => el.classList.remove('selected'));
+        document.querySelector(`[data-ay="${ay}"]`).classList.add('selected');
+        updateDisplay();
+    }
+
+    function selectSem(e, sem) {
+        e.stopPropagation();
+        selectedSem = sem;
+        document.querySelectorAll('[data-sem]').forEach(el => el.classList.remove('selected'));
+        document.querySelector(`[data-sem="${sem}"]`).classList.add('selected');
+        updateDisplay();
+    }
+
+    function updateDisplay() {
+        document.getElementById('period-display').textContent =
+            `A.Y. ${selectedAY}, ${selectedSem}`;
+    }
+
+    document.addEventListener('click', function(e) {
+        const card = document.getElementById('period-card');
+        if (!card.contains(e.target)) {
+            card.classList.remove('open');
+            document.getElementById('period-dropdown').classList.remove('open');
+        }
     });
-});
+
+    function filterAnn(tag, btn) {
+        document.querySelectorAll('.ann-tab').forEach(b => {
+            b.style.background  = '';
+            b.style.color       = '';
+            b.style.borderColor = '';
+            b.classList.remove('active');
+        });
+        btn.classList.add('active');
+        document.querySelectorAll('#ann-list .ann-card').forEach(c => {
+            c.style.display = tag === 'all'
+                ? ''
+                : (c.dataset.tag || '').toLowerCase()
+                    .includes(tag.toLowerCase()) ? '' : 'none';
+        });
+    }
+
+    document.querySelectorAll('.check-box').forEach(box => {
+        box.addEventListener('click', () => {
+            box.classList.toggle('active');
+            const total   = document.querySelectorAll('.check-box').length;
+            const checked = document.querySelectorAll('.check-box.active').length;
+            document.getElementById('progress-badge').textContent =
+                `${checked}/${total} Completed`;
+        });
+    });
 </script>
 }

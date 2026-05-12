@@ -17,12 +17,12 @@ namespace OnlineClearanceSystem.Controllers
             _config = config;
         }
 
-        // ── Dashboard ─────────────────────────────────────────
+        // ── Dashboard ─────────────────────────────────────────────────────
         public IActionResult Dashboard()
         {
             var userId    = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
             var firstName = User.FindFirst("FirstName")?.Value ?? "";
-            var lastName  = User.FindFirst("LastName")?.Value ?? "";
+            var lastName  = User.FindFirst("LastName")?.Value  ?? "";
 
             var model = new StaffDashboardViewModel
             {
@@ -35,34 +35,26 @@ namespace OnlineClearanceSystem.Controllers
                 using var conn = DbHelper.GetConnection(_config);
                 conn.Open();
 
-                var empId = GetEmployeeId(conn, userId);
-
-                // Active period
                 var periodCmd = new MySqlCommand(
-                    "SELECT CONCAT('A.Y. ', academic_year, ', ', semester) " +
+                    "SELECT CONCAT('A.Y. ', year_label, ', ', semester) " +
                     "FROM academic_periods WHERE is_active = 1 LIMIT 1", conn);
                 var period = periodCmd.ExecuteScalar()?.ToString();
-                if (!string.IsNullOrEmpty(period))
-                    model.ActivePeriod = period;
+                if (!string.IsNullOrEmpty(period)) model.ActivePeriod = period;
 
-                if (!string.IsNullOrEmpty(empId))
-                {
-                    // Approved count
-                    var appCmd = new MySqlCommand(@"
-                        SELECT COUNT(*) FROM clearance_organization
-                        WHERE org_signatory = @eid AND status = 2", conn);
-                    appCmd.Parameters.AddWithValue("@eid", empId);
-                    model.Approved = Convert.ToInt32(appCmd.ExecuteScalar() ?? 0);
+                var appCmd = new MySqlCommand(@"
+                    SELECT COUNT(*) FROM clearance_organization co
+                    JOIN organizations o ON o.position_title = co.position
+                    WHERE o.user_id = @uid AND co.status = 'Cleared'", conn);
+                appCmd.Parameters.AddWithValue("@uid", userId);
+                model.Approved = Convert.ToInt32(appCmd.ExecuteScalar() ?? 0);
 
-                    // Pending count
-                    var penCmd = new MySqlCommand(@"
-                        SELECT COUNT(*) FROM clearance_organization
-                        WHERE org_signatory = @eid AND status = 1", conn);
-                    penCmd.Parameters.AddWithValue("@eid", empId);
-                    model.Pending = Convert.ToInt32(penCmd.ExecuteScalar() ?? 0);
-                }
+                var penCmd = new MySqlCommand(@"
+                    SELECT COUNT(*) FROM clearance_organization co
+                    JOIN organizations o ON o.position_title = co.position
+                    WHERE o.user_id = @uid AND co.status = 'Pending'", conn);
+                penCmd.Parameters.AddWithValue("@uid", userId);
+                model.Pending = Convert.ToInt32(penCmd.ExecuteScalar() ?? 0);
 
-                // Announcements
                 LoadAnnouncements(conn, model.Announcements);
             }
             catch { }
@@ -70,7 +62,7 @@ namespace OnlineClearanceSystem.Controllers
             return View(model);
         }
 
-        // ── Signatories ───────────────────────────────────────
+        // ── Signatories ───────────────────────────────────────────────────
         public IActionResult Signatories()
         {
             var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
@@ -81,25 +73,24 @@ namespace OnlineClearanceSystem.Controllers
                 using var conn = DbHelper.GetConnection(_config);
                 conn.Open();
 
-                var empId = GetEmployeeId(conn, userId);
-                if (string.IsNullOrEmpty(empId)) return View(items);
-
                 var cmd = new MySqlCommand(@"
                     SELECT
-                        co.id                                              AS Id,
-                        CONCAT(u.first_name, ' ', u.last_name)            AS StudentName,
-                        s.student_number                                   AS StudentId,
-                        CONCAT(c.course_code, '-', cu.year_level, cu.section) AS Course,
-                        COALESCE(st.label, 'Pending')                      AS Status
+                        co.id                                                   AS Id,
+                        CONCAT(stu.first_name, ' ', stu.last_name)             AS StudentName,
+                        stu.student_number                                      AS StudentId,
+                        COALESCE(
+                            CONCAT(c.course_code, '-', cu.year_level, cu.section),
+                            '—'
+                        )                                                       AS Course,
+                        COALESCE(co.status, 'Pending')                         AS Status
                     FROM clearance_organization co
-                    JOIN students      s   ON s.student_number = co.student_number
-                    JOIN users         u   ON u.id             = s.user_id
-                    LEFT JOIN curriculum cu ON cu.id           = s.curriculum_id
-                    LEFT JOIN courses   c  ON c.id             = cu.course_id
-                    LEFT JOIN status_table st ON st.id         = co.status
-                    WHERE co.org_signatory = @eid
+                    JOIN organizations  o   ON o.position_title  = co.position
+                    JOIN users          stu ON stu.student_number = co.student_number
+                    LEFT JOIN curriculum cu ON cu.id             = stu.curriculum_id
+                    LEFT JOIN courses    c  ON c.id              = cu.course_id
+                    WHERE o.user_id = @uid
                     ORDER BY co.id", conn);
-                cmd.Parameters.AddWithValue("@eid", empId);
+                cmd.Parameters.AddWithValue("@uid", userId);
 
                 using var r = cmd.ExecuteReader();
                 while (r.Read())
@@ -109,7 +100,7 @@ namespace OnlineClearanceSystem.Controllers
                         Id          = r.GetInt32("Id"),
                         StudentName = r.GetString("StudentName"),
                         StudentId   = r.IsDBNull(r.GetOrdinal("StudentId")) ? "—" : r.GetString("StudentId"),
-                        Course      = r.IsDBNull(r.GetOrdinal("Course")) ? "—" : r.GetString("Course"),
+                        Course      = r.IsDBNull(r.GetOrdinal("Course"))    ? "—" : r.GetString("Course"),
                         Status      = r.GetString("Status")
                     });
                 }
@@ -119,25 +110,24 @@ namespace OnlineClearanceSystem.Controllers
             return View(items);
         }
 
-        // ── Approve ───────────────────────────────────────────
+        // ── Approve / Decline ─────────────────────────────────────────────
         [HttpPost, ValidateAntiForgeryToken]
         public IActionResult Approve(int id)
         {
-            UpdateOrgStatus(id, 2);
+            UpdateOrgStatus(id, "Cleared");
             TempData["SuccessMessage"] = "Student clearance approved.";
             return RedirectToAction(nameof(Signatories));
         }
 
-        // ── Decline ───────────────────────────────────────────
         [HttpPost, ValidateAntiForgeryToken]
         public IActionResult Decline(int id)
         {
-            UpdateOrgStatus(id, 3);
+            UpdateOrgStatus(id, "Declined");
             TempData["SuccessMessage"] = "Student clearance declined.";
             return RedirectToAction(nameof(Signatories));
         }
 
-        // ── Profile GET ───────────────────────────────────────
+        // ── Profile GET ───────────────────────────────────────────────────
         public IActionResult Profile()
         {
             var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
@@ -150,57 +140,51 @@ namespace OnlineClearanceSystem.Controllers
 
                 var cmd = new MySqlCommand(@"
                     SELECT u.first_name, u.middle_initial, u.last_name,
-                           sig.employee_id, sig.signature_data
+                           u.id_number, sig.signature_data
                     FROM users u
-                    LEFT JOIN signatories sig ON sig.user_id = u.id
+                    LEFT JOIN user_signatures sig ON sig.user_id = u.id AND sig.position IS NULL
                     WHERE u.id = @uid LIMIT 1", conn);
                 cmd.Parameters.AddWithValue("@uid", userId);
 
                 using var r = cmd.ExecuteReader();
                 if (r.Read())
                 {
-                    model.FirstName        = r.IsDBNull(r.GetOrdinal("first_name")) ? "" : r.GetString("first_name");
-                    model.MiddleInitial    = r.IsDBNull(r.GetOrdinal("middle_initial")) ? "" : r.GetString("middle_initial");
-                    model.LastName         = r.IsDBNull(r.GetOrdinal("last_name")) ? "" : r.GetString("last_name");
-                    model.StaffId          = r.IsDBNull(r.GetOrdinal("employee_id")) ? "—" : r.GetString("employee_id");
-                    model.SignatureBase64  = r.IsDBNull(r.GetOrdinal("signature_data")) ? null : r.GetString("signature_data");
-                    model.Password         = "";
+                    model.FirstName      = r.IsDBNull(r.GetOrdinal("first_name"))      ? "" : r.GetString("first_name");
+                    model.MiddleInitial  = r.IsDBNull(r.GetOrdinal("middle_initial"))  ? "" : r.GetString("middle_initial");
+                    model.LastName       = r.IsDBNull(r.GetOrdinal("last_name"))       ? "" : r.GetString("last_name");
+                    model.StaffId        = r.IsDBNull(r.GetOrdinal("id_number"))       ? "—" : r.GetString("id_number");
+                    model.SignatureBase64 = r.IsDBNull(r.GetOrdinal("signature_data")) ? null : r.GetString("signature_data");
+                    model.Password       = "";
                 }
                 r.Close();
 
-                // Positions
-                var empId = GetEmployeeId(conn, userId);
-                if (!string.IsNullOrEmpty(empId))
-                {
-                    var posCmd = new MySqlCommand(
-                        "SELECT position_title FROM organizations WHERE org_signatory = @eid ORDER BY id", conn);
-                    posCmd.Parameters.AddWithValue("@eid", empId);
-                    using var pr = posCmd.ExecuteReader();
-                    while (pr.Read())
-                    {
-                        if (!pr.IsDBNull(0)) model.Positions.Add(pr.GetString(0));
-                    }
-                }
+                var posCmd = new MySqlCommand(
+                    "SELECT position_title FROM organizations WHERE user_id = @uid ORDER BY id", conn);
+                posCmd.Parameters.AddWithValue("@uid", userId);
+                using var pr = posCmd.ExecuteReader();
+                while (pr.Read())
+                    if (!pr.IsDBNull(0)) model.Positions.Add(pr.GetString(0));
             }
             catch { }
 
             return View(model);
         }
 
-        // ── Save Signature (AJAX) ─────────────────────────────
+        // ── Save Signature (AJAX) ─────────────────────────────────────────
         [HttpPost, ValidateAntiForgeryToken]
         public IActionResult SaveSignature([FromBody] SaveSignatureDto dto)
         {
-            var userId = int.Parse(
-                User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
             try
             {
                 using var conn = DbHelper.GetConnection(_config);
                 conn.Open();
-                var cmd = new MySqlCommand(
-                    "UPDATE signatories SET signature_data = @sd WHERE user_id = @uid", conn);
-                cmd.Parameters.AddWithValue("@sd", dto.SignatureData ?? "");
+                var cmd = new MySqlCommand(@"
+                    INSERT INTO user_signatures (user_id, signature_data)
+                    VALUES (@uid, @sd)
+                    ON DUPLICATE KEY UPDATE signature_data = @sd", conn);
                 cmd.Parameters.AddWithValue("@uid", userId);
+                cmd.Parameters.AddWithValue("@sd",  dto.SignatureData ?? "");
                 cmd.ExecuteNonQuery();
                 return Json(new { success = true });
             }
@@ -210,7 +194,7 @@ namespace OnlineClearanceSystem.Controllers
             }
         }
 
-        // ── Profile POST ──────────────────────────────────────
+        // ── Profile POST ──────────────────────────────────────────────────
         [HttpPost, ValidateAntiForgeryToken]
         public IActionResult SaveStaffProfile(StaffProfileViewModel model)
         {
@@ -224,24 +208,22 @@ namespace OnlineClearanceSystem.Controllers
                 if (!string.IsNullOrWhiteSpace(model.Password))
                 {
                     var hash = BCrypt.Net.BCrypt.HashPassword(model.Password);
-                    var cmd = new MySqlCommand(@"
-                        UPDATE users SET first_name=@fn, middle_initial=@mi,
-                        last_name=@ln, password=@pw WHERE id=@id", conn);
-                    cmd.Parameters.AddWithValue("@fn", model.FirstName?.Trim() ?? "");
+                    var cmd  = new MySqlCommand(
+                        "UPDATE users SET first_name=@fn, middle_initial=@mi, last_name=@ln, password=@pw WHERE id=@id", conn);
+                    cmd.Parameters.AddWithValue("@fn", model.FirstName?.Trim()     ?? "");
                     cmd.Parameters.AddWithValue("@mi", model.MiddleInitial?.Trim() ?? "");
-                    cmd.Parameters.AddWithValue("@ln", model.LastName?.Trim() ?? "");
+                    cmd.Parameters.AddWithValue("@ln", model.LastName?.Trim()      ?? "");
                     cmd.Parameters.AddWithValue("@pw", hash);
                     cmd.Parameters.AddWithValue("@id", userId);
                     cmd.ExecuteNonQuery();
                 }
                 else
                 {
-                    var cmd = new MySqlCommand(@"
-                        UPDATE users SET first_name=@fn, middle_initial=@mi,
-                        last_name=@ln WHERE id=@id", conn);
-                    cmd.Parameters.AddWithValue("@fn", model.FirstName?.Trim() ?? "");
+                    var cmd = new MySqlCommand(
+                        "UPDATE users SET first_name=@fn, middle_initial=@mi, last_name=@ln WHERE id=@id", conn);
+                    cmd.Parameters.AddWithValue("@fn", model.FirstName?.Trim()     ?? "");
                     cmd.Parameters.AddWithValue("@mi", model.MiddleInitial?.Trim() ?? "");
-                    cmd.Parameters.AddWithValue("@ln", model.LastName?.Trim() ?? "");
+                    cmd.Parameters.AddWithValue("@ln", model.LastName?.Trim()      ?? "");
                     cmd.Parameters.AddWithValue("@id", userId);
                     cmd.ExecuteNonQuery();
                 }
@@ -256,19 +238,8 @@ namespace OnlineClearanceSystem.Controllers
             return RedirectToAction(nameof(Profile));
         }
 
-        // ══════════════════════════════════════════════════════
-        // HELPERS
-        // ══════════════════════════════════════════════════════
-
-        private string GetEmployeeId(MySqlConnection conn, int userId)
-        {
-            var cmd = new MySqlCommand(
-                "SELECT employee_id FROM signatories WHERE user_id = @uid LIMIT 1", conn);
-            cmd.Parameters.AddWithValue("@uid", userId);
-            return cmd.ExecuteScalar()?.ToString() ?? "";
-        }
-
-        private void UpdateOrgStatus(int id, int status)
+        // ── Helpers ───────────────────────────────────────────────────────
+        private void UpdateOrgStatus(int id, string status)
         {
             try
             {
@@ -276,18 +247,18 @@ namespace OnlineClearanceSystem.Controllers
                 conn.Open();
                 var cmd = new MySqlCommand(
                     "UPDATE clearance_organization SET status = @s WHERE id = @id", conn);
-                cmd.Parameters.AddWithValue("@s", status);
+                cmd.Parameters.AddWithValue("@s",  status);
                 cmd.Parameters.AddWithValue("@id", id);
                 cmd.ExecuteNonQuery();
             }
             catch { }
         }
 
-        private void LoadAnnouncements(MySqlConnection conn, List<AnnouncementItem> list)
+        private static void LoadAnnouncements(MySqlConnection conn, List<AnnouncementItem> list)
         {
-            var cmd = new MySqlCommand(@"
-                SELECT title, content, type, created_at
-                FROM announcements ORDER BY created_at DESC LIMIT 10", conn);
+            var cmd = new MySqlCommand(
+                "SELECT title, body AS content, type, posted_at AS created_at " +
+                "FROM announcements ORDER BY posted_at DESC LIMIT 10", conn);
             using var r = cmd.ExecuteReader();
             while (r.Read())
             {
@@ -301,5 +272,4 @@ namespace OnlineClearanceSystem.Controllers
             }
         }
     }
-
 }

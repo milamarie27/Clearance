@@ -102,34 +102,26 @@ namespace OnlineClearanceSystem.Controllers
                 // 3. Pending requests (for instructors)
                 if (role == "Instructor")
                 {
-                    var empCmd = new MySqlCommand(
-                        "SELECT employee_id FROM signatories WHERE user_id = @uid LIMIT 1", conn);
-                    empCmd.Parameters.AddWithValue("@uid", userId);
-                    var empId = empCmd.ExecuteScalar()?.ToString() ?? "";
+                    var pendCmd = new MySqlCommand(@"
+                        SELECT COUNT(*) AS cnt
+                        FROM clearance_subjects cs
+                        JOIN subject_offerings so ON so.mis_code = cs.mis_code
+                        WHERE so.instructor_user_id = @uid
+                        AND cs.status = 1", conn);
+                    pendCmd.Parameters.AddWithValue("@uid", userId);
+                    var pendingCount = Convert.ToInt32(pendCmd.ExecuteScalar() ?? 0);
 
-                    if (!string.IsNullOrEmpty(empId))
+                    if (pendingCount > 0)
                     {
-                        var pendCmd = new MySqlCommand(@"
-                            SELECT COUNT(*) AS cnt
-                            FROM clearance_subjects cs
-                            JOIN subject_offerings so ON so.mis_code = cs.mis_code
-                            WHERE so.instructor_id = @eid
-                            AND cs.status = 1", conn);
-                        pendCmd.Parameters.AddWithValue("@eid", empId);
-                        var pendingCount = Convert.ToInt32(pendCmd.ExecuteScalar() ?? 0);
-
-                        if (pendingCount > 0)
+                        notifications.Insert(0, new
                         {
-                            notifications.Insert(0, new
-                            {
-                                id     = 0,
-                                title  = $"{pendingCount} pending clearance request{(pendingCount > 1 ? "s" : "")}",
-                                type   = "Pending",
-                                source = "clearance",
-                                icon   = "fa-clock",
-                                time   = "Now"
-                            });
-                        }
+                            id     = 0,
+                            title  = $"{pendingCount} pending clearance request{(pendingCount > 1 ? "s" : "")}",
+                            type   = "Pending",
+                            source = "clearance",
+                            icon   = "fa-clock",
+                            time   = "Now"
+                        });
                     }
                 }
             }

@@ -1,0 +1,1246 @@
+@{
+    ViewData["Title"]      = "User Management";
+    ViewData["ActivePage"] = "UserManagement";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="page-title">User Management</div>
+
+<!-- STATS ROW -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div>
+                <div class="stat-num" id="stat-all">0</div>
+                <div class="stat-label">Total Users</div>
+                <div class="stat-sub">All roles combined</div>
+            </div>
+            <div class="stat-icon-wrap si-blue"><i class="fas fa-users"></i></div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div>
+                <div class="stat-num" id="stat-students">0</div>
+                <div class="stat-label">Students</div>
+                <div class="stat-sub" id="stat-students-sub">—</div>
+            </div>
+            <div class="stat-icon-wrap si-purple"><i class="fas fa-user-graduate"></i></div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div>
+                <div class="stat-num" id="stat-instructors">0</div>
+                <div class="stat-label">Instructors</div>
+                <div class="stat-sub">Active faculty</div>
+            </div>
+            <div class="stat-icon-wrap si-green"><i class="fas fa-chalkboard-teacher"></i></div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div>
+                <div class="stat-num" id="stat-staff">0</div>
+                <div class="stat-label">Staff / Admin</div>
+                <div class="stat-sub">Support personnel</div>
+            </div>
+            <div class="stat-icon-wrap si-teal"><i class="fas fa-user-tie"></i></div>
+        </div>
+    </div>
+</div>
+
+<!-- ROLE FILTER TABS -->
+<div class="d-flex gap-2 flex-wrap mb-4" id="role-tabs">
+    <button class="ann-filter-btn active" id="tab-all"         onclick="switchRole('all')">
+        <i class="fas fa-users me-1"></i>All Users
+    </button>
+    <button class="ann-filter-btn"        id="tab-Student"     onclick="switchRole('Student')">
+        <i class="fas fa-user-graduate me-1"></i>Students
+    </button>
+    <button class="ann-filter-btn"        id="tab-Instructor"  onclick="switchRole('Instructor')">
+        <i class="fas fa-chalkboard-teacher me-1"></i>Instructors
+    </button>
+    <button class="ann-filter-btn"        id="tab-Staff"       onclick="switchRole('Staff')">
+        <i class="fas fa-user-tie me-1"></i>Staff
+    </button>
+    <button class="ann-filter-btn"        id="tab-Org"         onclick="switchRole('Org')">
+        <i class="fas fa-id-badge me-1"></i>Org Officers
+    </button>
+</div>
+
+<!-- ─── MAIN TABLE PANEL (all / Student / Instructor / Staff) ─── -->
+<div class="panel" id="main-panel"><!-- populated by JS --></div>
+
+<!-- ─── INSTRUCTOR DETAIL PANEL ─── -->
+<div id="detail-panel" style="display:none;" class="mt-3">
+    <div class="panel">
+        <div style="background:var(--tbl-hd-navy);padding:13px 18px;font-size:14px;font-weight:700;color:white;
+                    display:flex;align-items:center;justify-content:space-between;border-radius:10px 10px 0 0;">
+            <span><i class="fas fa-user me-2"></i>Instructor Detail — <span id="det-header-name" style="color:#63b3ed;"></span></span>
+            <button onclick="closeDetail()"
+                    style="background:rgba(255,255,255,0.12);border:none;color:white;border-radius:6px;padding:4px 14px;font-size:12px;cursor:pointer;">
+                <i class="fas fa-times me-1"></i>Close
+            </button>
+        </div>
+        <div style="padding:20px;">
+            <div style="background:var(--card);border-radius:12px;border:1px solid var(--border);
+                        padding:18px 22px;display:flex;align-items:center;gap:18px;margin-bottom:20px;">
+                <div style="width:58px;height:58px;border-radius:50%;background:rgba(66,153,225,0.15);
+                            display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <span id="det-avatar" style="font-size:24px;font-weight:800;color:#4299e1;"></span>
+                </div>
+                <div>
+                    <div id="det-name" style="font-size:18px;font-weight:800;color:var(--text);"></div>
+                    <div id="det-eid-label" style="font-size:12px;color:var(--muted);margin-top:3px;"></div>
+                </div>
+                <div style="margin-left:auto;">
+                    <span style="background:rgba(56,161,105,0.15);color:#38a169;padding:4px 14px;border-radius:20px;font-size:12px;font-weight:700;">Active</span>
+                </div>
+            </div>
+            <div id="det-error" style="display:none;background:rgba(229,62,62,0.10);border:1px solid rgba(229,62,62,0.3);
+                 border-radius:10px;padding:16px;text-align:center;margin-bottom:16px;">
+                <i class="fas fa-exclamation-triangle" style="color:#fc8181;font-size:20px;margin-bottom:8px;display:block;"></i>
+                <div id="det-error-msg" style="font-size:12px;color:var(--muted);"></div>
+            </div>
+            <div class="panel" style="margin-bottom:0;">
+                <div style="padding:13px 16px;border-bottom:1px solid var(--border);font-size:13px;font-weight:700;color:var(--text);">
+                    <i class="fas fa-id-card me-2" style="color:#4299e1;"></i>Profile Information
+                </div>
+                <div style="padding:16px;">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="dark-label">First Name</label>
+                            <input class="dark-input" id="det-first" type="text" readonly />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="dark-label">Last Name</label>
+                            <input class="dark-input" id="det-last" type="text" readonly />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="dark-label">Employee ID</label>
+                            <input class="dark-input" id="det-eid" type="text" readonly />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="dark-label">Positions</label>
+                            <div id="det-positions" style="min-height:38px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ─── ORG OFFICERS PANEL ─── -->
+<div id="org-panel" style="display:none;">
+    <div class="panel mb-4">
+        <div class="panel-hd">
+            <span class="panel-hd-title"><i class="fas fa-id-badge me-2"></i>Student Org Officers</span>
+        </div>
+        <div style="padding:20px 20px 0;">
+            <div class="row g-2 mb-3">
+                <div class="col-md-5">
+                    <label class="dark-label">Student</label>
+                    <select class="dark-input dark-select" id="sig-student-sel">
+                        <option value="">-- Select Student --</option>
+                    </select>
+                </div>
+                <div class="col-md-5">
+                    <label class="dark-label">Position / Role</label>
+                    <input class="dark-input" id="sig-position" placeholder="e.g. Organization Treasurer" />
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button class="btn-green-sm w-100" onclick="addStudentSignatory()">
+                        <i class="fas fa-plus me-1"></i>Assign
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="data-table" id="sig-table">
+                <thead>
+                    <tr>
+                        <th>#</th><th>Name</th><th>Student No.</th>
+                        <th>Course</th><th>Position</th><th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="sig-tbody"></tbody>
+            </table>
+        </div>
+        <div id="sig-empty"
+             style="padding:48px 24px;text-align:center;color:var(--muted);font-size:13px;display:none;">
+            <i class="fas fa-id-badge" style="font-size:28px;opacity:0.3;display:block;margin-bottom:10px;"></i>
+            No org officers assigned yet.
+        </div>
+    </div>
+</div>
+
+<!-- ─── ASSIGN POSITIONS FLOATING PANEL (Instructor / Staff) ─── -->
+<div class="mt-4 panel" id="assign-panel" style="display:none;">
+    <div style="background:var(--tbl-hd-navy);padding:13px 18px;font-size:14px;font-weight:700;
+                color:white;display:flex;align-items:center;justify-content:space-between;">
+        <span id="assign-panel-title"><i class="fas fa-sitemap me-2"></i>Assign Positions</span>
+        <button onclick="closeAssignPanel()"
+                style="background:rgba(255,255,255,0.12);border:none;color:white;
+                       border-radius:6px;padding:4px 12px;font-size:12px;cursor:pointer;">
+            <i class="fas fa-times me-1"></i>Close
+        </button>
+    </div>
+    <div style="padding:20px;" id="assign-panel-body"><!-- rendered by JS --></div>
+    <div style="background:var(--tbl-hd-navy);padding:11px 18px;font-size:13px;font-weight:700;color:white;">
+        <span id="assign-list-title">Assigned Positions</span>
+    </div>
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead id="assign-thead"></thead>
+            <tbody id="assign-tbody"></tbody>
+        </table>
+        <div id="assign-empty" style="padding:36px 24px;text-align:center;color:var(--muted);font-size:13px;">
+            <i class="fas fa-list-ul" style="font-size:24px;opacity:0.3;display:block;margin-bottom:10px;"></i>
+            No positions assigned yet.
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+// ══════════════════════════════════════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════════════════════════════════════
+let students        = [];
+let instructors     = [];
+let staffList       = [];
+let orgSignatories  = [];   // instructor org signatories
+let stuSignatories  = [];   // student org officers
+let staffPositions  = [];
+let curriculums     = [];
+let selectedInstructor = null;
+
+let currentRole    = 'all';
+let assignMode     = null;  // 'instructor' | 'staff' | null
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════════════════════════════════════
+async function init() {
+    await Promise.all([
+        loadStudents(),
+        loadInstructors(),
+        loadStaff(),
+        loadOrgSignatories(),
+        loadStuSignatories(),
+        loadStaffPositions(),
+        loadCurriculums()
+    ]);
+    updateStats();
+    render();
+    populateStudentDropdown();
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  LOADERS
+// ══════════════════════════════════════════════════════════════════════════════
+async function loadStudents() {
+    try { const r = await fetch('/api/admin/students'); students = await r.json(); } catch {}
+    if (!Array.isArray(students)) students = [];
+}
+async function loadInstructors() {
+    try { const r = await fetch('/api/admin/instructors'); instructors = await r.json(); } catch {}
+    if (!Array.isArray(instructors)) instructors = [];
+}
+async function loadStaff() {
+    try { const r = await fetch('/api/admin/staff'); staffList = await r.json(); } catch {}
+    if (!Array.isArray(staffList)) staffList = [];
+}
+async function loadOrgSignatories() {
+    try {
+        const r = await fetch('/api/admin/org-signatories');
+        const d = await r.json();
+        orgSignatories = Array.isArray(d) ? d.map(s => ({
+            id: s.id, userId: s.userId, name: s.name, eid: s.eid,
+            pos: s.pos, curriculumId: s.curriculumId ?? null,
+            courseCode: s.courseCode ?? '', yearLevel: s.yearLevel ?? '',
+            section: s.section ?? ''
+        })) : [];
+    } catch { orgSignatories = []; }
+}
+async function loadStuSignatories() {
+    try { const r = await fetch('/api/admin/student-signatories'); stuSignatories = await r.json(); } catch {}
+    if (!Array.isArray(stuSignatories)) stuSignatories = [];
+}
+async function loadStaffPositions() {
+    try { const r = await fetch('/api/admin/staff-positions'); staffPositions = await r.json(); } catch {}
+    if (!Array.isArray(staffPositions)) staffPositions = [];
+}
+async function loadCurriculums() {
+    try { const r = await fetch('/api/admin/curriculums'); curriculums = await r.json(); } catch {}
+    if (!Array.isArray(curriculums)) curriculums = [];
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  STATS
+// ══════════════════════════════════════════════════════════════════════════════
+function updateStats() {
+    const cleared = students.filter(s => s.cs === 'Cleared').length;
+    document.getElementById('stat-all').textContent         = students.length + instructors.length + staffList.length;
+    document.getElementById('stat-students').textContent    = students.length;
+    document.getElementById('stat-students-sub').textContent= `${cleared} cleared`;
+    document.getElementById('stat-instructors').textContent = instructors.length;
+    document.getElementById('stat-staff').textContent       = staffList.length;
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  ROLE TABS
+// ══════════════════════════════════════════════════════════════════════════════
+function switchRole(role) {
+    currentRole = role;
+    closeDetail();
+    closeAssignPanel();
+
+    ['all','Student','Instructor','Staff','Org'].forEach(r =>
+        document.getElementById('tab-' + r).classList.toggle('active', r === role)
+    );
+
+    document.getElementById('main-panel').style.display  = role !== 'Org' ? '' : 'none';
+    document.getElementById('org-panel').style.display   = role === 'Org' ? '' : 'none';
+
+    render();
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  MAIN RENDER DISPATCHER
+// ══════════════════════════════════════════════════════════════════════════════
+function render() {
+    if (currentRole === 'Org') { renderOrgOfficers(); return; }
+    if (currentRole === 'Student')    { renderStudentTable();    return; }
+    if (currentRole === 'Instructor') { renderInstructorTable(); return; }
+    if (currentRole === 'Staff')      { renderStaffTable();      return; }
+    renderAllTable();
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  ALL USERS TABLE (merged)
+// ══════════════════════════════════════════════════════════════════════════════
+function renderAllTable() {
+    const panel = document.getElementById('main-panel');
+    const rows  = [
+        ...students.map(s => ({
+            role: 'Student', name: s.name, id: s.idNum || '—',
+            meta: `${s.course || '—'} · Yr${s.year || '?'} · ${s.section || '—'}`,
+            badge: s.cs === 'Cleared'
+                ? `<span style="${badgeStyle('#38a169','rgba(56,161,105,0.15)')}"><i class="fas fa-check-circle me-1"></i>Cleared</span>`
+                : `<span style="${badgeStyle('#f6ad55','rgba(246,173,85,0.15)')}"><i class="fas fa-clock me-1"></i>Pending</span>`,
+            action: ''
+        })),
+        ...instructors.map(i => ({
+            role: 'Instructor', name: i.name, id: i.employeeId || '—',
+            meta: i.joinedDate || '—',
+            badge: `<span style="${badgeStyle('#38a169','rgba(56,161,105,0.15)')}">Active</span>`,
+            action: `<button onclick="viewDetail(${i.id})" style="${btnStyle('#4299e1')}"><i class="fas fa-eye me-1"></i>View</button>`
+        })),
+        ...staffList.map(s => ({
+            role: 'Staff', name: s.name, id: s.id_number || '—',
+            meta: '—',
+            badge: `<span style="${badgeStyle('#38a169','rgba(56,161,105,0.15)')}">Active</span>`,
+            action: ''
+        }))
+    ];
+
+    if (!rows.length) {
+        panel.innerHTML = emptyState('fa-users', 'No Users Found', 'No users registered yet.');
+        return;
+    }
+
+    panel.innerHTML = `
+        <div class="panel-hd">
+            <span class="panel-hd-title"><i class="fas fa-users me-2"></i>All Users</span>
+            <div class="search-wrap">
+                <i class="fas fa-search"></i>
+                <input class="search-input" placeholder="Search name, ID, course..."
+                       oninput="filterTable(this,'all-table')" />
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="data-table" id="all-table">
+                <thead>
+                    <tr>
+                        <th>#</th><th>Name</th><th>Role</th>
+                        <th>ID / Student No.</th><th>Details</th>
+                        <th>Status</th><th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${rows.map((r, i) => `
+                        <tr>
+                            <td style="color:var(--muted);">${String(i+1).padStart(2,'0')}</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="user-avatar-sm" style="background:${roleColor(r.role)};">
+                                        ${escHtml(r.name.charAt(0))}
+                                    </div>
+                                    <span style="font-weight:600;font-size:13px;">${escHtml(r.name)}</span>
+                                </div>
+                            </td>
+                            <td>
+                                <span style="${badgeStyle(roleColor(r.role), roleColorBg(r.role))}">
+                                    ${escHtml(r.role)}
+                                </span>
+                            </td>
+                            <td style="color:var(--muted);font-size:12px;">${escHtml(r.id)}</td>
+                            <td style="color:var(--muted);font-size:12px;">${escHtml(r.meta)}</td>
+                            <td>${r.badge}</td>
+                            <td>${r.action || '<span style="color:var(--muted);font-size:12px;">—</span>'}</td>
+                        </tr>`).join('')}
+                </tbody>
+            </table>
+        </div>`;
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  STUDENT TABLE
+// ══════════════════════════════════════════════════════════════════════════════
+function renderStudentTable() {
+    const panel = document.getElementById('main-panel');
+
+    // sub-filter buttons inside student view
+    const subFilterHtml = `
+        <div class="d-flex gap-2 mb-3" style="padding:16px 16px 0;">
+            <button class="ann-filter-btn active" id="sf-all"     onclick="subFilter('all')">All</button>
+            <button class="ann-filter-btn"        id="sf-cleared" onclick="subFilter('cleared')">
+                <i class="fas fa-check-circle me-1"></i>Cleared
+            </button>
+            <button class="ann-filter-btn"        id="sf-pending" onclick="subFilter('pending')">
+                <i class="fas fa-clock me-1"></i>Pending
+            </button>
+        </div>`;
+
+    panel.innerHTML = `
+        ${subFilterHtml}
+        <div class="panel-hd">
+            <span class="panel-hd-title"><i class="fas fa-user-graduate me-2"></i>Students</span>
+            <div class="search-wrap">
+                <i class="fas fa-search"></i>
+                <input class="search-input" placeholder="Search name, ID, course..."
+                       oninput="filterTable(this,'student-table')" />
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="data-table" id="student-table">
+                <thead>
+                    <tr>
+                        <th>#</th><th>Name</th><th>Student No.</th>
+                        <th>Course</th><th>Year</th><th>Section</th><th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="student-tbody"></tbody>
+            </table>
+        </div>
+        <div id="student-empty" style="display:none;padding:48px 24px;text-align:center;color:var(--muted);font-size:13px;">
+            <i class="fas fa-user-graduate" style="font-size:28px;opacity:0.3;display:block;margin-bottom:10px;"></i>
+            No students match this filter.
+        </div>`;
+
+    renderStudentRows('all');
+}
+
+let currentSubFilter = 'all';
+function subFilter(f) {
+    currentSubFilter = f;
+    ['all','cleared','pending'].forEach(x =>
+        document.getElementById('sf-' + x)?.classList.toggle('active', x === f)
+    );
+    renderStudentRows(f);
+}
+
+function renderStudentRows(f) {
+    let list = students;
+    if (f === 'cleared') list = students.filter(s => s.cs === 'Cleared');
+    if (f === 'pending') list = students.filter(s => s.cs !== 'Cleared');
+
+    const tbody = document.getElementById('student-tbody');
+    const empty = document.getElementById('student-empty');
+    if (!tbody) return;
+
+    if (!list.length) {
+        tbody.innerHTML = '';
+        if (empty) empty.style.display = 'block';
+        return;
+    }
+    if (empty) empty.style.display = 'none';
+
+    tbody.innerHTML = list.map((s, i) => `
+        <tr>
+            <td style="color:var(--muted);">${String(i+1).padStart(2,'0')}</td>
+            <td>
+                <div class="d-flex align-items-center gap-2">
+                    <div class="user-avatar-sm" style="background:#9f7aea;">${escHtml(s.name.charAt(0))}</div>
+                    <span style="font-weight:600;font-size:13px;">${escHtml(s.name)}</span>
+                </div>
+            </td>
+            <td style="color:var(--muted);">${escHtml(s.idNum || '—')}</td>
+            <td>${escHtml(s.course || '—')}</td>
+            <td style="color:var(--muted);">${s.year || '—'}</td>
+            <td style="color:var(--muted);">${escHtml(s.section || '—')}</td>
+            <td>
+                ${s.cs === 'Cleared'
+                    ? `<span style="${badgeStyle('#38a169','rgba(56,161,105,0.15)')}"><i class="fas fa-check-circle me-1"></i>Cleared</span>`
+                    : `<span style="${badgeStyle('#f6ad55','rgba(246,173,85,0.15)')}"><i class="fas fa-clock me-1"></i>Pending</span>`}
+            </td>
+        </tr>`).join('');
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  INSTRUCTOR TABLE
+// ══════════════════════════════════════════════════════════════════════════════
+function renderInstructorTable() {
+    const panel = document.getElementById('main-panel');
+
+    if (!instructors.length) {
+        panel.innerHTML = emptyState('fa-chalkboard-teacher', 'No Instructors Registered Yet',
+            'Instructor accounts will appear here once they complete registration.');
+        return;
+    }
+
+    panel.innerHTML = `
+        <div class="panel-hd">
+            <span class="panel-hd-title"><i class="fas fa-chalkboard-teacher me-2"></i>Instructors</span>
+            <div class="d-flex gap-2">
+                <div class="search-wrap">
+                    <i class="fas fa-search"></i>
+                    <input class="search-input" placeholder="Search name, ID..."
+                           oninput="filterTable(this,'inst-table')" />
+                </div>
+                <button class="btn-blue-sm" onclick="openInstructorAssign()">
+                    <i class="fas fa-sitemap me-1"></i>Assign Signatories
+                </button>
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="data-table" id="inst-table">
+                <thead>
+                    <tr>
+                        <th>#</th><th>Name</th><th>Employee ID</th>
+                        <th>Date Joined</th><th>Status</th><th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${instructors.map((inst, i) => `
+                        <tr>
+                            <td style="color:var(--muted);">${String(i+1).padStart(2,'0')}</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="user-avatar-sm" style="background:#4299e1;">${escHtml(inst.name.charAt(0))}</div>
+                                    <span style="font-weight:600;">${escHtml(inst.name)}</span>
+                                </div>
+                            </td>
+                            <td>
+                                ${inst.employeeId && inst.employeeId !== '—'
+                                    ? `<span style="${badgeStyle('#4299e1','rgba(66,153,225,0.15)')};">${escHtml(inst.employeeId)}</span>`
+                                    : `<span style="color:var(--muted);font-size:12px;">Not assigned</span>`}
+                            </td>
+                            <td style="color:var(--muted);font-size:12px;">${escHtml(inst.joinedDate ?? '—')}</td>
+                            <td><span style="${badgeStyle('#38a169','rgba(56,161,105,0.15)')}">Active</span></td>
+                            <td>
+                                <button onclick="viewDetail(${inst.id})"
+                                    style="${btnStyle('#4299e1')}">
+                                    <i class="fas fa-eye me-1"></i>View
+                                </button>
+                            </td>
+                        </tr>`).join('')}
+                </tbody>
+            </table>
+        </div>`;
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  STAFF TABLE
+// ══════════════════════════════════════════════════════════════════════════════
+function renderStaffTable() {
+    const panel = document.getElementById('main-panel');
+
+    if (!staffList.length) {
+        panel.innerHTML = emptyState('fa-user-tie', 'No Staff Registered Yet', 'Staff accounts will appear here once registered.');
+        return;
+    }
+
+    const rows = staffList.map(s => {
+        const assigned = staffPositions.find(p => p.name === s.name);
+        return { ...s, posLabel: assigned ? assigned.pos : null, approved: assigned?.approved ?? 0, pending: assigned?.pending ?? 0 };
+    });
+
+    panel.innerHTML = `
+        <div class="panel-hd">
+            <span class="panel-hd-title"><i class="fas fa-user-tie me-2"></i>Staff & Admin</span>
+            <div class="d-flex gap-2">
+                <div class="search-wrap">
+                    <i class="fas fa-search"></i>
+                    <input class="search-input" placeholder="Search name, ID..."
+                           oninput="filterTable(this,'staff-table')" />
+                </div>
+                <button class="btn-blue-sm" onclick="openStaffAssign()">
+                    <i class="fas fa-id-badge me-1"></i>Assign Positions
+                </button>
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="data-table" id="staff-table">
+                <thead>
+                    <tr>
+                        <th>#</th><th>Name</th><th>ID Number</th>
+                        <th>Position</th><th>Approved</th><th>Pending</th><th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${rows.map((s, i) => `
+                        <tr>
+                            <td style="color:var(--muted);">${String(i+1).padStart(2,'0')}</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="user-avatar-sm" style="background:#0d9488;">${escHtml(s.name.charAt(0))}</div>
+                                    <span style="font-weight:600;font-size:13px;">${escHtml(s.name)}</span>
+                                </div>
+                            </td>
+                            <td style="color:var(--muted);font-size:12px;">${escHtml(s.id_number || '—')}</td>
+                            <td>
+                                ${s.posLabel
+                                    ? `<span style="${badgeStyle('#0d9488','rgba(13,148,136,0.15)')};">${escHtml(s.posLabel)}</span>`
+                                    : `<span style="color:var(--muted);font-size:12px;">—</span>`}
+                            </td>
+                            <td><span style="${badgeStyle('#68d391','rgba(56,161,105,0.15)');}">${s.approved}</span></td>
+                            <td><span style="${badgeStyle('#f6e05e','rgba(236,201,75,0.15)');}">${s.pending}</span></td>
+                            <td><span style="${badgeStyle('#38a169','rgba(56,161,105,0.15)')}">Active</span></td>
+                        </tr>`).join('')}
+                </tbody>
+            </table>
+        </div>`;
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  ORG OFFICERS (STUDENT SIGNATORIES)
+// ══════════════════════════════════════════════════════════════════════════════
+function renderOrgOfficers() {
+    const tbody = document.getElementById('sig-tbody');
+    const empty = document.getElementById('sig-empty');
+    tbody.innerHTML = '';
+
+    if (!stuSignatories.length) {
+        empty.style.display = 'block'; return;
+    }
+    empty.style.display = 'none';
+
+    stuSignatories.forEach((s, i) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td style="color:var(--muted);">${String(i+1).padStart(2,'0')}</td>
+            <td>
+                <div class="d-flex align-items-center gap-2">
+                    <div class="user-avatar-sm" style="background:#9f7aea;">${escHtml(s.name.charAt(0))}</div>
+                    <span style="font-weight:600;font-size:13px;">${escHtml(s.name)}</span>
+                </div>
+            </td>
+            <td style="color:var(--muted);">${escHtml(s.idNum || '—')}</td>
+            <td>${escHtml(s.course || '—')}</td>
+            <td><span style="${badgeStyle('#9f7aea','rgba(159,122,234,0.15)')};">${escHtml(s.position || '—')}</span></td>
+            <td>
+                <button onclick="removeStuSignatory(${s.id})"
+                        style="${btnStyle('#e53e3e','rgba(229,62,62,0.12)')}">
+                    <i class="fas fa-trash-alt me-1"></i>Remove
+                </button>
+            </td>`;
+        tbody.appendChild(tr);
+    });
+}
+
+function populateStudentDropdown() {
+    const sel = document.getElementById('sig-student-sel');
+    sel.innerHTML = '<option value="">-- Select Student --</option>';
+    students.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value       = s.id;
+        opt.textContent = `${s.name} (${s.idNum || '—'})`;
+        sel.appendChild(opt);
+    });
+}
+
+async function addStudentSignatory() {
+    const userId   = document.getElementById('sig-student-sel').value;
+    const position = document.getElementById('sig-position').value.trim();
+    if (!userId || !position) { alert('Please select a student and enter a position.'); return; }
+    try {
+        const res  = await fetch('/api/admin/student-signatories', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: parseInt(userId), position })
+        });
+        const data = await res.json();
+        if (data.success) {
+            await loadStuSignatories();
+            renderOrgOfficers();
+            document.getElementById('sig-student-sel').value = '';
+            document.getElementById('sig-position').value    = '';
+        } else { alert(data.error || 'Failed to assign position.'); }
+    } catch (e) { alert('Error: ' + e.message); }
+}
+
+async function removeStuSignatory(id) {
+    if (!confirm('Remove this org officer assignment?')) return;
+    try {
+        await fetch(`/api/admin/student-signatories/${id}`, { method: 'DELETE' });
+        stuSignatories = stuSignatories.filter(s => s.id !== id);
+        renderOrgOfficers();
+    } catch (e) { alert('Error: ' + e.message); }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  INSTRUCTOR DETAIL
+// ══════════════════════════════════════════════════════════════════════════════
+async function viewDetail(id) {
+    document.getElementById('detail-panel').style.display  = 'block';
+    document.getElementById('det-error').style.display     = 'none';
+    document.getElementById('det-header-name').textContent = 'Loading...';
+    document.getElementById('det-name').textContent        = 'Loading...';
+    document.getElementById('det-avatar').textContent      = '?';
+    ['det-first','det-last','det-eid'].forEach(fid => {
+        const el = document.getElementById(fid); if (el) el.value = '';
+    });
+    document.getElementById('det-positions').innerHTML = '';
+    setTimeout(() => document.getElementById('detail-panel')
+        .scrollIntoView({ behavior:'smooth', block:'start' }), 50);
+
+    try {
+        const res  = await fetch(`/api/admin/instructors/${id}`);
+        const data = await res.json();
+        if (data.error) {
+            document.getElementById('det-error').style.display     = 'block';
+            document.getElementById('det-error-msg').textContent   = data.error;
+            document.getElementById('det-header-name').textContent = 'Error';
+            document.getElementById('det-name').textContent        = 'Error';
+            return;
+        }
+        const fullName = [data.firstName, data.lastName].filter(x => x && x !== '—').join(' ');
+        document.getElementById('det-header-name').textContent = fullName || '—';
+        document.getElementById('det-avatar').textContent      = data.firstName?.charAt(0) ?? '?';
+        document.getElementById('det-name').textContent        = fullName || '—';
+        document.getElementById('det-eid-label').textContent   = `Employee ID: ${data.employeeId ?? '—'}`;
+        document.getElementById('det-first').value             = data.firstName  ?? '—';
+        document.getElementById('det-last').value              = data.lastName   ?? '—';
+        document.getElementById('det-eid').value               = data.employeeId ?? '—';
+
+        const posDiv    = document.getElementById('det-positions');
+        const positions = Array.isArray(data.positions) ? data.positions : [];
+        posDiv.innerHTML = positions.length
+            ? positions.map(p => `<span style="${badgeStyle('#4299e1','rgba(66,153,225,0.15)')};font-size:11px;">${escHtml(p)}</span>`).join('')
+            : `<span style="font-size:12px;color:var(--muted);">No positions assigned</span>`;
+    } catch (e) {
+        document.getElementById('det-error').style.display     = 'block';
+        document.getElementById('det-error-msg').textContent   = e.message;
+        document.getElementById('det-header-name').textContent = 'Error';
+    }
+}
+
+function closeDetail() { document.getElementById('detail-panel').style.display = 'none'; }
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  ASSIGN PANELS (Instructor signatories / Staff positions)
+// ══════════════════════════════════════════════════════════════════════════════
+function openInstructorAssign() {
+    assignMode = 'instructor';
+    document.getElementById('assign-panel-title').innerHTML =
+        '<i class="fas fa-sitemap me-2"></i>Assign Instructor Organization Signatories';
+    document.getElementById('assign-list-title').textContent = 'List of Instructor Signatories';
+    document.getElementById('assign-thead').innerHTML = `
+        <tr><th>#</th><th>Name</th><th>Employee ID</th><th>Position</th><th>Action</th></tr>`;
+    renderInstructorAssignBody();
+    renderAssignedSignatories();
+    document.getElementById('assign-panel').style.display = 'block';
+    setTimeout(() => document.getElementById('assign-panel')
+        .scrollIntoView({ behavior:'smooth', block:'start' }), 50);
+}
+
+function renderInstructorAssignBody() {
+    document.getElementById('assign-panel-body').innerHTML = `
+        <div style="background:rgba(66,153,225,0.08);border:1px solid rgba(66,153,225,0.25);border-radius:8px;
+                    padding:12px 16px;margin-bottom:20px;font-size:12px;color:var(--muted);
+                    display:flex;align-items:flex-start;gap:10px;">
+            <i class="fas fa-info-circle" style="color:#4299e1;margin-top:2px;flex-shrink:0;"></i>
+            <span>Only registered instructors can be assigned as signatories. The same instructor can hold
+                  <strong style="color:var(--text);">multiple positions</strong>.
+                  <strong style="color:var(--text);">Class Adviser</strong> assignments require selecting a section.</span>
+        </div>
+        <div class="row g-3 mb-3">
+            <div class="col-12">
+                <label class="dark-label">Search &amp; Select Instructor</label>
+                <div style="position:relative;">
+                    <input class="dark-input" id="ia-search" placeholder="Type name or Employee ID..."
+                           autocomplete="off" oninput="filterInstDD(this.value)"
+                           onfocus="filterInstDD(this.value)" style="padding-right:36px;" />
+                    <i class="fas fa-search" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none;"></i>
+                    <div id="ia-dropdown"
+                         style="display:none;position:absolute;top:100%;left:0;right:0;z-index:9999;
+                                background:var(--card);border:1px solid var(--border);border-radius:8px;
+                                max-height:220px;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,0.3);margin-top:4px;">
+                    </div>
+                </div>
+                <div id="ia-pill" style="display:none;margin-top:10px;background:rgba(66,153,225,0.12);
+                     border:1px solid rgba(66,153,225,0.3);border-radius:8px;padding:10px 14px;
+                     display:flex;align-items:center;justify-content:space-between;">
+                    <div style="display:flex;align-items:center;gap:10px;">
+                        <div id="ia-pill-av" class="user-avatar-sm" style="background:#4299e1;"></div>
+                        <div>
+                            <div id="ia-pill-name" style="font-size:13px;font-weight:700;color:var(--text);"></div>
+                            <div id="ia-pill-meta" style="font-size:11px;color:var(--muted);margin-top:2px;"></div>
+                        </div>
+                    </div>
+                    <button onclick="clearInstSelection()"
+                            style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="col-12">
+                <label class="dark-label">Position</label>
+                <select class="dark-input" id="ia-pos" onchange="toggleIAExtras(this.value)"
+                        style="appearance:auto;-webkit-appearance:auto;cursor:pointer;">
+                    <option value="" disabled selected>— Select a position —</option>
+                    <option value="Class Adviser">Class Adviser</option>
+                    <option value="Departmental Chairperson">Departmental Chairperson</option>
+                    <option value="Organization Adviser">Organization Adviser</option>
+                    <option value="__custom__">Other (type manually)</option>
+                </select>
+            </div>
+            <div id="ia-section-wrap" style="display:none;" class="col-12">
+                <div style="background:rgba(66,153,225,0.06);border:1px solid rgba(66,153,225,0.2);
+                            border-radius:10px;padding:14px 16px;">
+                    <div style="font-size:12px;font-weight:700;color:#4299e1;margin-bottom:12px;">
+                        <i class="fas fa-chalkboard-teacher me-2"></i>Class Adviser Assignment
+                    </div>
+                    <div class="row g-2">
+                        <div class="col-12">
+                            <label class="dark-label">Course</label>
+                            <select class="dark-input" id="ia-ca-course" onchange="iaFilterYear()"
+                                    style="appearance:auto;-webkit-appearance:auto;cursor:pointer;">
+                                <option value="" disabled selected>— Select Course —</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="dark-label">Year Level</label>
+                            <select class="dark-input" id="ia-ca-year" onchange="iaFilterSection()"
+                                    style="appearance:auto;-webkit-appearance:auto;cursor:pointer;">
+                                <option value="" disabled selected>— Year —</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="dark-label">Section</label>
+                            <select class="dark-input" id="ia-ca-section" onchange="iaUpdatePreview()"
+                                    style="appearance:auto;-webkit-appearance:auto;cursor:pointer;">
+                                <option value="" disabled selected>— Section —</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div style="font-size:11px;color:var(--muted);margin-top:10px;">
+                        <i class="fas fa-info-circle me-1" style="color:#4299e1;"></i>
+                        Adviser for: <span id="ia-ca-preview" style="color:#4299e1;font-weight:700;">—</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12">
+                <input class="dark-input" type="text" id="ia-pos-custom"
+                       placeholder="Type custom position..." style="display:none;" />
+            </div>
+        </div>
+        <button class="btn-blue-sm" onclick="addOrgSignatory()">
+            <i class="fas fa-plus me-2"></i>Add Signatory
+        </button>`;
+}
+
+function openStaffAssign() {
+    assignMode = 'staff';
+    document.getElementById('assign-panel-title').innerHTML =
+        '<i class="fas fa-id-badge me-2"></i>Assign Staff Positions';
+    document.getElementById('assign-list-title').textContent = 'Assigned Staff Positions';
+    document.getElementById('assign-thead').innerHTML = `
+        <tr><th>#</th><th>Name</th><th>Position</th><th>Requests</th><th>Action</th></tr>`;
+
+    const staffOptions = staffList.map(s =>
+        `<option value="${s.id}">${escHtml(s.name)}</option>`).join('');
+
+    document.getElementById('assign-panel-body').innerHTML = `
+        <div style="background:rgba(66,153,225,0.08);border:1px solid rgba(66,153,225,0.25);border-radius:8px;
+                    padding:12px 16px;margin-bottom:20px;font-size:12px;color:var(--muted);
+                    display:flex;align-items:flex-start;gap:10px;">
+            <i class="fas fa-info-circle" style="color:#4299e1;margin-top:2px;flex-shrink:0;"></i>
+            <span>Assign staff to clearance positions (Librarian, Cashier, Registrar).</span>
+        </div>
+        <div class="row g-3 mb-3">
+            <div class="col-md-6">
+                <label class="dark-label">Staff Member</label>
+                <select class="dark-input dark-select" id="sp-staff"
+                        style="appearance:auto;-webkit-appearance:auto;cursor:pointer;">
+                    <option value="">-- Select Staff --</option>${staffOptions}
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label class="dark-label">Position</label>
+                <select class="dark-input dark-select" id="sp-pos"
+                        style="appearance:auto;-webkit-appearance:auto;cursor:pointer;">
+                    <option value="">-- Select Position --</option>
+                    <option value="Librarian">Librarian</option>
+                    <option value="Cashier">Cashier</option>
+                    <option value="Registrar">Registrar</option>
+                </select>
+            </div>
+        </div>
+        <button class="btn-blue-sm" onclick="addStaffPosition()">
+            <i class="fas fa-plus me-2"></i>Assign Position
+        </button>`;
+
+    renderAssignedPositions();
+    document.getElementById('assign-panel').style.display = 'block';
+    setTimeout(() => document.getElementById('assign-panel')
+        .scrollIntoView({ behavior:'smooth', block:'start' }), 50);
+}
+
+function closeAssignPanel() {
+    assignMode = null;
+    document.getElementById('assign-panel').style.display = 'none';
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  INSTRUCTOR ASSIGN — SEARCH DROPDOWN
+// ══════════════════════════════════════════════════════════════════════════════
+function filterInstDD(q) {
+    const dd = document.getElementById('ia-dropdown');
+    if (!dd) return;
+    const term = q.toLowerCase().trim();
+    const hits = instructors.filter(i =>
+        term === '' || i.name.toLowerCase().includes(term) ||
+        (i.employeeId ?? '').toLowerCase().includes(term)
+    ).slice(0, 8);
+
+    dd.innerHTML = hits.length === 0
+        ? `<div style="padding:12px 16px;font-size:12px;color:var(--muted);text-align:center;">No instructors found.</div>`
+        : hits.map(i => `
+            <div onclick="selectInst(${i.id})"
+                 style="padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--border);
+                        display:flex;align-items:center;gap:10px;transition:background 0.15s;"
+                 onmouseover="this.style.background='rgba(66,153,225,0.08)'"
+                 onmouseout="this.style.background=''">
+                <div class="user-avatar-sm" style="background:#4299e1;flex-shrink:0;">${escHtml(i.name.charAt(0))}</div>
+                <div>
+                    <div style="font-size:13px;font-weight:600;color:var(--text);">${escHtml(i.name)}</div>
+                    <div style="font-size:11px;color:var(--muted);">EID: ${escHtml(i.employeeId ?? '—')}</div>
+                </div>
+            </div>`).join('');
+    dd.style.display = 'block';
+}
+
+function selectInst(id) {
+    selectedInstructor = instructors.find(i => i.id === id);
+    if (!selectedInstructor) return;
+    document.getElementById('ia-dropdown').style.display = 'none';
+    document.getElementById('ia-search').value           = '';
+    document.getElementById('ia-pill-av').textContent    = selectedInstructor.name.charAt(0);
+    document.getElementById('ia-pill-name').textContent  = selectedInstructor.name;
+    document.getElementById('ia-pill-meta').textContent  = `EID: ${selectedInstructor.employeeId ?? '—'}`;
+    document.getElementById('ia-pill').style.display     = 'flex';
+}
+
+function clearInstSelection() {
+    selectedInstructor = null;
+    document.getElementById('ia-pill').style.display   = 'none';
+    document.getElementById('ia-search').value         = '';
+    document.getElementById('ia-dropdown').style.display = 'none';
+}
+
+document.addEventListener('click', e => {
+    const dd    = document.getElementById('ia-dropdown');
+    const input = document.getElementById('ia-search');
+    if (dd && input && !dd.contains(e.target) && e.target !== input)
+        dd.style.display = 'none';
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  INSTRUCTOR ASSIGN — POSITION EXTRAS
+// ══════════════════════════════════════════════════════════════════════════════
+function toggleIAExtras(val) {
+    const wrap   = document.getElementById('ia-section-wrap');
+    const custom = document.getElementById('ia-pos-custom');
+    if (wrap)   wrap.style.display   = val === 'Class Adviser' ? 'block' : 'none';
+    if (custom) custom.style.display = val === '__custom__'    ? 'block' : 'none';
+    if (custom && val !== '__custom__') custom.value = '';
+    if (val === 'Class Adviser') iaPopulateCourses();
+}
+
+function iaPopulateCourses() {
+    const sel      = document.getElementById('ia-ca-course');
+    if (!sel) return;
+    const takenIds = new Set(orgSignatories.filter(s => s.pos === 'Class Adviser' && s.curriculumId).map(s => s.curriculumId));
+    const available= curriculums.filter(c => !takenIds.has(c.id));
+    const courses  = [...new Set(available.map(c => c.courseCode))].sort();
+    sel.innerHTML  = `<option value="" disabled selected>— Select Course —</option>`;
+    courses.forEach(code => { const o = document.createElement('option'); o.value = o.textContent = code; sel.appendChild(o); });
+    document.getElementById('ia-ca-year').innerHTML    = `<option value="" disabled selected>— Year —</option>`;
+    document.getElementById('ia-ca-section').innerHTML = `<option value="" disabled selected>— Section —</option>`;
+}
+
+function iaFilterYear() {
+    const course   = document.getElementById('ia-ca-course')?.value;
+    const yearSel  = document.getElementById('ia-ca-year');
+    if (!yearSel) return;
+    const takenIds = new Set(orgSignatories.filter(s => s.pos === 'Class Adviser' && s.curriculumId).map(s => s.curriculumId));
+    const avail    = curriculums.filter(c => (!course || c.courseCode === course) && !takenIds.has(c.id));
+    const years    = [...new Set(avail.map(c => c.yearLevel))].sort((a, b) => a - b);
+    yearSel.innerHTML = `<option value="" disabled selected>— Year —</option>`;
+    years.forEach(y => {
+        const lbl = y == 1 ? '1st Year' : y == 2 ? '2nd Year' : y == 3 ? '3rd Year' : '4th Year';
+        const o   = document.createElement('option'); o.value = y; o.textContent = lbl; yearSel.appendChild(o);
+    });
+    document.getElementById('ia-ca-section').innerHTML = `<option value="" disabled selected>— Section —</option>`;
+}
+
+function iaFilterSection() {
+    const course   = document.getElementById('ia-ca-course')?.value;
+    const year     = document.getElementById('ia-ca-year')?.value;
+    const secSel   = document.getElementById('ia-ca-section');
+    if (!secSel) return;
+    const takenIds = new Set(orgSignatories.filter(s => s.pos === 'Class Adviser' && s.curriculumId).map(s => s.curriculumId));
+    const avail    = curriculums.filter(c =>
+        (!course || c.courseCode === course) &&
+        (!year   || String(c.yearLevel) === String(year)) &&
+        !takenIds.has(c.id)
+    );
+    secSel.innerHTML = `<option value="" disabled selected>— Section —</option>`;
+    avail.forEach(c => {
+        const o = document.createElement('option'); o.value = c.id; o.textContent = c.section; secSel.appendChild(o);
+    });
+    iaUpdatePreview();
+}
+
+function iaUpdatePreview() {
+    const preview = document.getElementById('ia-ca-preview');
+    if (!preview) return;
+    const secSel  = document.getElementById('ia-ca-section');
+    const selected= curriculums.find(c => String(c.id) === String(secSel?.value));
+    preview.textContent = selected ? selected.section : '—';
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  ADD / REMOVE — ORG SIGNATORIES (Instructor)
+// ══════════════════════════════════════════════════════════════════════════════
+async function addOrgSignatory() {
+    if (!selectedInstructor) { alert('Please select an instructor first.'); return; }
+    const posSel = document.getElementById('ia-pos')?.value;
+    if (!posSel) { alert('Please select a position.'); return; }
+
+    if (posSel === 'Class Adviser') {
+        const courseVal    = document.getElementById('ia-ca-course')?.value;
+        const yearVal      = document.getElementById('ia-ca-year')?.value;
+        const secSel       = document.getElementById('ia-ca-section');
+        const curriculumId = secSel?.value;
+        if (!courseVal)    { alert('Please select a course.');     return; }
+        if (!yearVal)      { alert('Please select a year level.'); return; }
+        if (!curriculumId) { alert('Please select a section.');    return; }
+        try {
+            const res  = await fetch('/api/admin/org-signatories', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: selectedInstructor.id, pos: 'Class Adviser', curriculumId: parseInt(curriculumId) })
+            });
+            const data = await res.json();
+            if (data.success) {
+                await loadOrgSignatories();
+                renderAssignedSignatories();
+                iaPopulateCourses();
+                clearInstSelection();
+                if (document.getElementById('ia-pos')) document.getElementById('ia-pos').value = '';
+                document.getElementById('ia-section-wrap').style.display = 'none';
+            } else { alert('Error: ' + (data.error ?? 'Unknown')); }
+        } catch (e) { alert('Error: ' + e.message); }
+        return;
+    }
+
+    let pos = posSel === '__custom__'
+        ? (document.getElementById('ia-pos-custom')?.value.trim() || '')
+        : posSel.trim();
+    if (!pos) { alert('Please type a custom position.'); return; }
+
+    const dup = orgSignatories.find(s => s.userId === selectedInstructor.id && s.pos === pos);
+    if (dup) { alert('This instructor already has this exact position assigned.'); return; }
+
+    try {
+        const res  = await fetch('/api/admin/org-signatories', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: selectedInstructor.id, pos })
+        });
+        const data = await res.json();
+        if (data.success) {
+            orgSignatories.push({ id: data.id, userId: selectedInstructor.id,
+                name: selectedInstructor.name, eid: selectedInstructor.employeeId,
+                pos, curriculumId: null, courseCode: '', yearLevel: '', section: '' });
+            renderAssignedSignatories();
+            clearInstSelection();
+            if (document.getElementById('ia-pos'))        document.getElementById('ia-pos').value = '';
+            if (document.getElementById('ia-pos-custom')) { document.getElementById('ia-pos-custom').value = ''; document.getElementById('ia-pos-custom').style.display = 'none'; }
+        } else { alert('Error: ' + (data.error ?? 'Unknown')); }
+    } catch (e) { alert('Error: ' + e.message); }
+}
+
+async function removeOrgSignatory(id) {
+    if (!confirm('Remove this signatory?')) return;
+    try {
+        const res  = await fetch(`/api/admin/org-signatories/${id}`, { method: 'DELETE' });
+        const data = await res.json();
+        if (data.success) {
+            orgSignatories = orgSignatories.filter(s => s.id !== id);
+            renderAssignedSignatories();
+            if (document.getElementById('ia-section-wrap')?.style.display === 'block') iaPopulateCourses();
+        } else { alert('Error: ' + (data.error ?? 'Unknown')); }
+    } catch (e) { alert('Error: ' + e.message); }
+}
+
+function renderAssignedSignatories() {
+    const tbody = document.getElementById('assign-tbody');
+    const empty = document.getElementById('assign-empty');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    if (!orgSignatories.length) { empty.style.display = 'block'; return; }
+    empty.style.display = 'none';
+
+    orgSignatories.forEach((s, i) => {
+        let posDisplay = '';
+        if (s.pos === 'Class Adviser' && s.courseCode) {
+            const yl = s.yearLevel == 1 ? '1st' : s.yearLevel == 2 ? '2nd' : s.yearLevel == 3 ? '3rd' : s.yearLevel + 'th';
+            posDisplay = `<span style="${badgeStyle('#38a169','rgba(56,161,105,0.12)')}">Class Adviser</span>
+                <div style="font-size:11px;color:var(--muted);margin-top:4px;">
+                    <i class="fas fa-layer-group me-1" style="color:#4299e1;"></i>
+                    ${escHtml(s.courseCode)} · ${yl} Year · ${escHtml(s.section)}
+                </div>`;
+        } else {
+            posDisplay = `<span style="${badgeStyle('#4299e1','rgba(66,153,225,0.12)')}">${escHtml(s.pos)}</span>`;
+        }
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td style="color:var(--muted);">${String(i+1).padStart(2,'0')}</td>
+            <td>
+                <div class="d-flex align-items-center gap-2">
+                    <div class="user-avatar-sm" style="background:#4299e1;">${escHtml(s.name.charAt(0))}</div>
+                    <span style="font-weight:600;">${escHtml(s.name)}</span>
+                </div>
+            </td>
+            <td style="color:var(--muted);">${escHtml(s.eid ?? '—')}</td>
+            <td>${posDisplay}</td>
+            <td>
+                <button onclick="removeOrgSignatory(${s.id})" style="${btnStyle('#e53e3e','rgba(229,62,62,0.12)')}">
+                    <i class="fas fa-trash-alt me-1"></i>Remove
+                </button>
+            </td>`;
+        tbody.appendChild(row);
+    });
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  ADD / REMOVE — STAFF POSITIONS
+// ══════════════════════════════════════════════════════════════════════════════
+async function addStaffPosition() {
+    const staffSel = document.getElementById('sp-staff');
+    const posSel   = document.getElementById('sp-pos');
+    const staffId  = staffSel?.value;
+    const pos      = posSel?.value;
+    const name     = staffSel?.options[staffSel.selectedIndex]?.textContent ?? '';
+    if (!staffId || !pos) { alert('Please select a staff member and a position.'); return; }
+    try {
+        const res  = await fetch('/api/admin/staff-positions', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ staffId: parseInt(staffId), eid: '', pos })
+        });
+        const data = await res.json();
+        if (data.success) {
+            staffPositions.push({ id: data.id, name, eid: '—', pos, approved: 0, pending: 0 });
+            renderAssignedPositions();
+            renderStaffTable();
+            if (staffSel) staffSel.value = '';
+            if (posSel)   posSel.value   = '';
+        } else { alert(data.error || 'Failed.'); }
+    } catch (e) { alert('Error: ' + e.message); }
+}
+
+async function removeStaffPosition(id) {
+    if (!confirm('Remove this position assignment?')) return;
+    try {
+        await fetch(`/api/admin/staff-positions/${id}`, { method: 'DELETE' });
+        staffPositions = staffPositions.filter(p => p.id !== id);
+        renderAssignedPositions();
+        renderStaffTable();
+    } catch {}
+}
+
+function renderAssignedPositions() {
+    const tbody = document.getElementById('assign-tbody');
+    const empty = document.getElementById('assign-empty');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    if (!staffPositions.length) { empty.style.display = 'block'; return; }
+    empty.style.display = 'none';
+
+    staffPositions.forEach((p, i) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td style="color:var(--muted);">${String(i+1).padStart(2,'0')}</td>
+            <td>
+                <div class="d-flex align-items-center gap-2">
+                    <div class="user-avatar-sm" style="background:#0d9488;">${escHtml(p.name.charAt(0))}</div>
+                    <span style="font-weight:600;font-size:13px;">${escHtml(p.name)}</span>
+                </div>
+            </td>
+            <td><span style="${badgeStyle('#0d9488','rgba(13,148,136,0.15)')}">${escHtml(p.pos)}</span></td>
+            <td>
+                <span style="${badgeStyle('#68d391','rgba(56,161,105,0.15)')}">${p.approved ?? 0} Approved</span>
+                &nbsp;
+                <span style="${badgeStyle('#f6e05e','rgba(236,201,75,0.15)')}">${p.pending ?? 0} Pending</span>
+            </td>
+            <td>
+                <button onclick="removeStaffPosition(${p.id})" style="${btnStyle('#e53e3e','rgba(229,62,62,0.12)')}">
+                    <i class="fas fa-trash-alt me-1"></i>Remove
+                </button>
+            </td>`;
+        tbody.appendChild(row);
+    });
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  HELPERS
+// ══════════════════════════════════════════════════════════════════════════════
+function roleColor(role) {
+    return { Student: '#9f7aea', Instructor: '#4299e1', Staff: '#0d9488' }[role] || '#718096';
+}
+function roleColorBg(role) {
+    return { Student: 'rgba(159,122,234,0.15)', Instructor: 'rgba(66,153,225,0.15)', Staff: 'rgba(13,148,136,0.15)' }[role] || 'rgba(113,128,150,0.15)';
+}
+function badgeStyle(color, bg) {
+    return `background:${bg};color:${color};padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;`;
+}
+function btnStyle(color, bg = color + '22') {
+    return `background:${bg};border:none;color:${color};border-radius:6px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;`;
+}
+function emptyState(icon, title, sub) {
+    return `<div style="padding:56px 24px;text-align:center;">
+        <div style="width:72px;height:72px;border-radius:50%;background:rgba(66,153,225,0.10);
+                    display:flex;align-items:center;justify-content:center;margin:0 auto 18px;">
+            <i class="fas ${icon}" style="font-size:30px;color:#4299e1;opacity:0.7;"></i>
+        </div>
+        <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:8px;">${title}</div>
+        <div style="font-size:13px;color:var(--muted);">${sub}</div>
+    </div>`;
+}
+function filterTable(input, id) {
+    const q = input.value.toLowerCase();
+    document.querySelectorAll('#' + id + ' tbody tr').forEach(r =>
+        r.style.display = r.textContent.toLowerCase().includes(q) ? '' : 'none'
+    );
+}
+function escHtml(str) {
+    return String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+init();
+</script>
+}

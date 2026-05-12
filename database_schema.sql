@@ -56,7 +56,6 @@ CREATE TABLE IF NOT EXISTS students (
 -- ── SIGNATORIES (instructor employee IDs) ────────────────
 CREATE TABLE IF NOT EXISTS signatories (
     id             INT         AUTO_INCREMENT PRIMARY KEY,
-    employee_id    VARCHAR(50) NOT NULL,
     user_id        INT         NOT NULL,
     signature_data MEDIUMTEXT             DEFAULT NULL,
     UNIQUE KEY uq_sig_user (user_id),

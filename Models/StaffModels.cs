@@ -25,26 +25,12 @@ namespace OnlineClearanceSystem.Models
     }
 
     // ───────── STAFF PROFILE ─────────
-    public class StaffProfileViewModel
+    public class StaffProfileViewModel : ProfileViewModelBase
     {
-        // Identity
-        public string StaffId { get; set; } = "";
-
-        // Editable fields
-        public string FirstName     { get; set; } = "";
-        public string MiddleInitial { get; set; } = "";
-        public string LastName      { get; set; } = "";
-        public string Department    { get; set; } = "";
-        public string Password      { get; set; } = "";
-
-        // Computed
-        public string FullName =>
-            $"{FirstName} {(string.IsNullOrEmpty(MiddleInitial) ? "" : MiddleInitial + ". ")}{LastName}".Trim();
-
-        // Role / Signatory positions
+        public string StaffId    { get; set; } = "";
+        public string Department { get; set; } = "";
+        public string Email     { get; set; } = "";
         public List<string> Positions { get; set; } = new();
-
-        // Optional: signature & avatar
         public string? SignatureBase64 { get; set; }
         public string? AvatarBase64   { get; set; }
     }

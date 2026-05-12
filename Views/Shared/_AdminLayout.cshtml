@@ -168,13 +168,8 @@
             <a href="/Admin/Announcement" class="nav-link-item @(activePage=="Announcement"?"active":"")"><i class="fas fa-bullhorn"></i><span>Announcement</span></a>
 
             <div class="sb-section">Manage</div>
-            <a href="/Admin/Student"      class="nav-link-item @(activePage=="Student"?"active":"")"><i class="fas fa-user-graduate"></i><span>Student</span></a>
-            <a href="/Admin/Instructor"   class="nav-link-item @(activePage=="Instructor"?"active":"")"><i class="fas fa-chalkboard-teacher"></i><span>Instructor</span></a>
-            <a href="/Admin/Staff"      class="nav-link-item @(activePage=="Staff"?"active":"")"><i class="fas fa-user-tie"></i><span>Staff</span></a>
-
+            <a href="/Admin/UserManagement" class="nav-link-item @(activePage=="UserManagement"?"active":"")"><i class="fas fa-users"></i><span>User Management</span></a>
             <a href="/Admin/Subjects"     class="nav-link-item @(activePage=="Subjects"?"active":"")"><i class="fas fa-book"></i><span>Subject</span></a>
-
-            <div class="sb-section">Settings</div>
             <a href="/Admin/Academic"     class="nav-link-item @(activePage=="Academic"?"active":"")"><i class="fas fa-calendar-alt"></i><span>Academic</span></a>
 
             <div class="sb-footer">
@@ -182,7 +177,6 @@
                     @Html.AntiForgeryToken()
                     <button type="submit" class="btn-logout"><i class="fas fa-sign-out-alt"></i><span>Log-out</span></button>
                 </form>
-                <div class="sb-year">A.Y. 2025 – 2026</div>
             </div>
         </nav>
 

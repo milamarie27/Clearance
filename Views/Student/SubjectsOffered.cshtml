@@ -10,7 +10,7 @@
 <!-- STEP 1: SELECT SUBJECTS -->
 <div id="step-select" style="display:@(showConfirm ? "none" : "block")">
     <div class="d-flex align-items-center justify-content-between mb-3">
-        <h5 class="fw-bold mb-0" style="color:#1a1a2e;">Subjects Offered</h5>
+        <h5 class="fw-bold mb-0" style="color:#1a1a2e;"></h5>
         <span class="semester-badge">
             <i class="fas fa-calendar-alt me-2"></i>
             @(Model?.ActivePeriod ?? "2nd Semester · A.Y. 2025-2026")
@@ -51,28 +51,55 @@
                             <th>SUBJECT CODE</th>
                             <th>DESCRIPTION</th>
                             <th>INSTRUCTOR</th>
+                            <th>STATUS</th>
                         </tr>
                     </thead>
                     <tbody id="subject-tbody">
                         @foreach (var s in Model.AvailableSubjects)
                         {
+                            var rowStyle = s.AlreadyEnrolled ? "opacity:0.6;" : "";
                             <tr class="subject-row"
+                                style="@rowStyle"
                                 data-search-mis="@s.MisCode.ToLower()"
                                 data-search-subj="@s.SubjectCode.ToLower()"
                                 data-search-desc="@s.Description.ToLower()"
                                 data-search-inst="@s.InstructorName.ToLower()">
                                 <td>
-                                    <input type="checkbox"
-                                           class="subject-check"
-                                           value="@s.MisCode"
-                                           style="width:16px;height:16px;
-                                                  accent-color:var(--green-accent);
-                                                  cursor:pointer;" />
+                                    @if (s.AlreadyEnrolled)
+                                    {
+                                        <input type="checkbox"
+                                               disabled
+                                               checked
+                                               style="width:16px;height:16px;cursor:not-allowed;" />
+                                    }
+                                    else
+                                    {
+                                        <input type="checkbox"
+                                               class="subject-check"
+                                               value="@s.MisCode"
+                                               style="width:16px;height:16px;
+                                                      accent-color:var(--green-accent);
+                                                      cursor:pointer;" />
+                                    }
                                 </td>
                                 <td><span class="code-badge">@s.MisCode</span></td>
                                 <td style="font-weight:600;">@s.SubjectCode</td>
                                 <td>@s.Description</td>
                                 <td>@s.InstructorName</td>
+                                <td>
+                                    @if (s.AlreadyEnrolled)
+                                    {
+                                        var badgeColor = s.EnrolledStatus switch {
+                                            "Cleared"  => "background:rgba(56,161,105,0.15);color:#38a169;",
+                                            "Pending"  => "background:rgba(246,173,85,0.15);color:#f6ad55;",
+                                            "Declined" => "background:rgba(229,62,62,0.15);color:#e53e3e;",
+                                            _          => ""
+                                        };
+                                        <span style="@badgeColor padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">
+                                            @s.EnrolledStatus
+                                        </span>
+                                    }
+                                </td>
                             </tr>
                         }
                     </tbody>
