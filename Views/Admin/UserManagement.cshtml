@@ -52,19 +52,19 @@
 
 <!-- ROLE FILTER TABS -->
 <div class="d-flex gap-2 flex-wrap mb-4" id="role-tabs">
-    <button class="ann-filter-btn active" id="tab-all"         onclick="switchRole('all')">
+    <button class="ann-filter-btn active" id="tab-all"        onclick="switchRole('all')">
         <i class="fas fa-users me-1"></i>All Users
     </button>
-    <button class="ann-filter-btn"        id="tab-Student"     onclick="switchRole('Student')">
+    <button class="ann-filter-btn"        id="tab-Student"    onclick="switchRole('Student')">
         <i class="fas fa-user-graduate me-1"></i>Students
     </button>
-    <button class="ann-filter-btn"        id="tab-Instructor"  onclick="switchRole('Instructor')">
+    <button class="ann-filter-btn"        id="tab-Instructor" onclick="switchRole('Instructor')">
         <i class="fas fa-chalkboard-teacher me-1"></i>Instructors
     </button>
-    <button class="ann-filter-btn"        id="tab-Staff"       onclick="switchRole('Staff')">
+    <button class="ann-filter-btn"        id="tab-Staff"      onclick="switchRole('Staff')">
         <i class="fas fa-user-tie me-1"></i>Staff
     </button>
-    <button class="ann-filter-btn"        id="tab-Org"         onclick="switchRole('Org')">
+    <button class="ann-filter-btn"        id="tab-Org"        onclick="switchRole('Org')">
         <i class="fas fa-id-badge me-1"></i>Org Officers
     </button>
 </div>
@@ -72,106 +72,160 @@
 <!-- ─── MAIN TABLE PANEL (all / Student / Instructor / Staff) ─── -->
 <div class="panel" id="main-panel"><!-- populated by JS --></div>
 
-<!-- ─── INSTRUCTOR DETAIL PANEL ─── -->
-<div id="detail-panel" style="display:none;" class="mt-3">
-    <div class="panel">
-        <div style="background:var(--tbl-hd-navy);padding:13px 18px;font-size:14px;font-weight:700;color:white;
-                    display:flex;align-items:center;justify-content:space-between;border-radius:10px 10px 0 0;">
-            <span><i class="fas fa-user me-2"></i>Instructor Detail — <span id="det-header-name" style="color:#63b3ed;"></span></span>
-            <button onclick="closeDetail()"
-                    style="background:rgba(255,255,255,0.12);border:none;color:white;border-radius:6px;padding:4px 14px;font-size:12px;cursor:pointer;">
-                <i class="fas fa-times me-1"></i>Close
+<!-- ─── ORG OFFICERS PANEL ─── -->
+<div id="org-panel" style="display:none;">
+    <div class="panel mb-4">
+        <div class="panel-hd" style="display:flex;align-items:center;justify-content:space-between;">
+            <span class="panel-hd-title"><i class="fas fa-id-badge me-2"></i>Org Officers &amp; Signatories</span>
+            <button onclick="openAssignOrgModal()"
+                    style="background:rgba(56,161,105,0.2);border:1px solid rgba(56,161,105,0.4);
+                           color:#68d391;border-radius:8px;padding:6px 16px;font-size:12px;
+                           font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;">
+                <i class="fas fa-user-plus"></i> Assign Position
             </button>
         </div>
-        <div style="padding:20px;">
-            <div style="background:var(--card);border-radius:12px;border:1px solid var(--border);
-                        padding:18px 22px;display:flex;align-items:center;gap:18px;margin-bottom:20px;">
-                <div style="width:58px;height:58px;border-radius:50%;background:rgba(66,153,225,0.15);
-                            display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                    <span id="det-avatar" style="font-size:24px;font-weight:800;color:#4299e1;"></span>
-                </div>
-                <div>
-                    <div id="det-name" style="font-size:18px;font-weight:800;color:var(--text);"></div>
-                    <div id="det-eid-label" style="font-size:12px;color:var(--muted);margin-top:3px;"></div>
-                </div>
-                <div style="margin-left:auto;">
-                    <span style="background:rgba(56,161,105,0.15);color:#38a169;padding:4px 14px;border-radius:20px;font-size:12px;font-weight:700;">Active</span>
-                </div>
-            </div>
-            <div id="det-error" style="display:none;background:rgba(229,62,62,0.10);border:1px solid rgba(229,62,62,0.3);
-                 border-radius:10px;padding:16px;text-align:center;margin-bottom:16px;">
-                <i class="fas fa-exclamation-triangle" style="color:#fc8181;font-size:20px;margin-bottom:8px;display:block;"></i>
-                <div id="det-error-msg" style="font-size:12px;color:var(--muted);"></div>
-            </div>
-            <div class="panel" style="margin-bottom:0;">
-                <div style="padding:13px 16px;border-bottom:1px solid var(--border);font-size:13px;font-weight:700;color:var(--text);">
-                    <i class="fas fa-id-card me-2" style="color:#4299e1;"></i>Profile Information
-                </div>
-                <div style="padding:16px;">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="dark-label">First Name</label>
-                            <input class="dark-input" id="det-first" type="text" readonly />
-                        </div>
-                        <div class="col-md-6">
-                            <label class="dark-label">Last Name</label>
-                            <input class="dark-input" id="det-last" type="text" readonly />
-                        </div>
-                        <div class="col-md-6">
-                            <label class="dark-label">Employee ID</label>
-                            <input class="dark-input" id="det-eid" type="text" readonly />
-                        </div>
-                        <div class="col-md-6">
-                            <label class="dark-label">Positions</label>
-                            <div id="det-positions" style="min-height:38px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Name</th>
+                        <th>Role</th>
+                        <th>ID / Student No.</th>
+                        <th>Position</th>
+                        <th>Section (if Adviser)</th>
+                        <th style="text-align:center;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="all-org-tbody"></tbody>
+            </table>
+        </div>
+        <div id="all-org-empty"
+             style="padding:48px 24px;text-align:center;color:var(--muted);font-size:13px;display:none;">
+            <i class="fas fa-id-badge" style="font-size:28px;opacity:0.3;display:block;margin-bottom:10px;"></i>
+            No org officers or signatories assigned yet.
         </div>
     </div>
 </div>
 
-<!-- ─── ORG OFFICERS PANEL ─── -->
-<div id="org-panel" style="display:none;">
-    <div class="panel mb-4">
-        <div class="panel-hd">
-            <span class="panel-hd-title"><i class="fas fa-id-badge me-2"></i>Student Org Officers</span>
+<!-- ─── ASSIGN ORG POSITION MODAL ─── -->
+<div id="assign-org-overlay"
+     style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1040;"
+     onclick="closeAssignOrgModal()"></div>
+<div id="assign-org-modal"
+     style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+            width:520px;max-height:90vh;overflow-y:auto;background:var(--card);
+            border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,0.5);z-index:1050;padding:0;">
+    <div style="background:var(--tbl-hd-navy);padding:16px 20px;display:flex;
+                align-items:center;justify-content:space-between;border-radius:14px 14px 0 0;">
+        <span style="font-size:14px;font-weight:700;color:white;">
+            <i class="fas fa-user-tag me-2"></i>Assign Org Position
+        </span>
+        <button onclick="closeAssignOrgModal()"
+                style="background:rgba(255,255,255,0.12);border:none;color:white;
+                       border-radius:6px;padding:4px 12px;font-size:12px;cursor:pointer;">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+    <div style="padding:20px;">
+        <!-- User search -->
+        <div class="mb-3">
+            <label class="dark-label">Search &amp; Select User (any role)</label>
+            <div style="position:relative;">
+                <input class="dark-input" id="ao-search" placeholder="Type name or ID…"
+                       autocomplete="off" oninput="filterAoDD(this.value)"
+                       onfocus="filterAoDD(this.value)" style="padding-right:36px;" />
+                <i class="fas fa-search"
+                   style="position:absolute;right:12px;top:50%;transform:translateY(-50%);
+                          color:var(--muted);pointer-events:none;"></i>
+                <div id="ao-dropdown"
+                     style="display:none;position:absolute;top:100%;left:0;right:0;z-index:9999;
+                            background:var(--card);border:1px solid var(--border);border-radius:8px;
+                            max-height:200px;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,0.4);
+                            margin-top:4px;"></div>
+            </div>
+            <div id="ao-pill" style="display:none;margin-top:10px;background:rgba(56,161,105,0.1);
+                 border:1px solid rgba(56,161,105,0.3);border-radius:8px;padding:10px 14px;
+                 display:flex;align-items:center;justify-content:space-between;">
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <div id="ao-pill-av" class="user-avatar-sm" style="background:#38a169;"></div>
+                    <div>
+                        <div id="ao-pill-name" style="font-size:13px;font-weight:700;color:var(--text);"></div>
+                        <div id="ao-pill-meta" style="font-size:11px;color:var(--muted);"></div>
+                    </div>
+                </div>
+                <button onclick="clearAoSelection()"
+                        style="background:none;border:none;color:var(--muted);cursor:pointer;">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
         </div>
-        <div style="padding:20px 20px 0;">
-            <div class="row g-2 mb-3">
-                <div class="col-md-5">
-                    <label class="dark-label">Student</label>
-                    <select class="dark-input dark-select" id="sig-student-sel">
-                        <option value="">-- Select Student --</option>
+
+        <!-- Position selector -->
+        <div class="mb-3">
+            <label class="dark-label">Position</label>
+            <select class="dark-input" id="ao-pos" onchange="onAoPosChange(this.value)"
+                    style="appearance:auto;-webkit-appearance:auto;cursor:pointer;">
+                <option value="" disabled selected>— Select a position —</option>
+                <option value="Class Adviser">Class Adviser</option>
+                <option value="Departmental Chairperson">Departmental Chairperson</option>
+                <option value="Organization Adviser">Organization Adviser</option>
+                <option value="SSG President">SSG President</option>
+                <option value="SSG Vice President">SSG Vice President</option>
+                <option value="SSG Secretary">SSG Secretary</option>
+                <option value="SSG Treasurer">SSG Treasurer</option>
+                <option value="SSG Auditor">SSG Auditor</option>
+                <option value="__custom__">Other (type manually)</option>
+            </select>
+        </div>
+        <div id="ao-custom-wrap" style="display:none;" class="mb-3">
+            <label class="dark-label">Custom Position Title</label>
+            <input class="dark-input" id="ao-custom" placeholder="e.g. Club President" />
+        </div>
+
+        <!-- Class Adviser extras -->
+        <div id="ao-adviser-wrap"
+             style="display:none;background:rgba(66,153,225,0.06);border:1px solid rgba(66,153,225,0.2);
+                    border-radius:10px;padding:14px 16px;margin-bottom:12px;">
+            <div style="font-size:12px;font-weight:700;color:#4299e1;margin-bottom:12px;">
+                <i class="fas fa-chalkboard-teacher me-2"></i>Class Adviser — Select Section
+            </div>
+            <div class="row g-2">
+                <div class="col-12">
+                    <label class="dark-label">Course</label>
+                    <select class="dark-input" id="ao-ca-course" onchange="aoFilterYear()"
+                            style="appearance:auto;-webkit-appearance:auto;cursor:pointer;">
+                        <option value="" disabled selected>— Select Course —</option>
                     </select>
                 </div>
-                <div class="col-md-5">
-                    <label class="dark-label">Position / Role</label>
-                    <input class="dark-input" id="sig-position" placeholder="e.g. Organization Treasurer" />
+                <div class="col-6">
+                    <label class="dark-label">Year Level</label>
+                    <select class="dark-input" id="ao-ca-year" onchange="aoFilterSection()"
+                            style="appearance:auto;-webkit-appearance:auto;cursor:pointer;">
+                        <option value="" disabled selected>— Year —</option>
+                    </select>
                 </div>
-                <div class="col-md-2 d-flex align-items-end">
-                    <button class="btn-green-sm w-100" onclick="addStudentSignatory()">
-                        <i class="fas fa-plus me-1"></i>Assign
-                    </button>
+                <div class="col-6">
+                    <label class="dark-label">Section</label>
+                    <select class="dark-input" id="ao-ca-section"
+                            style="appearance:auto;-webkit-appearance:auto;cursor:pointer;">
+                        <option value="" disabled selected>— Section —</option>
+                    </select>
                 </div>
             </div>
         </div>
-        <div class="table-responsive">
-            <table class="data-table" id="sig-table">
-                <thead>
-                    <tr>
-                        <th>#</th><th>Name</th><th>Student No.</th>
-                        <th>Course</th><th>Position</th><th>Action</th>
-                    </tr>
-                </thead>
-                <tbody id="sig-tbody"></tbody>
-            </table>
-        </div>
-        <div id="sig-empty"
-             style="padding:48px 24px;text-align:center;color:var(--muted);font-size:13px;display:none;">
-            <i class="fas fa-id-badge" style="font-size:28px;opacity:0.3;display:block;margin-bottom:10px;"></i>
-            No org officers assigned yet.
+
+        <div id="ao-error" style="display:none;color:#fc8181;font-size:12px;margin-bottom:10px;"></div>
+        <div style="display:flex;gap:10px;justify-content:flex-end;">
+            <button onclick="closeAssignOrgModal()"
+                    style="background:rgba(255,255,255,0.06);border:1px solid var(--border);
+                           color:var(--muted);border-radius:8px;padding:9px 22px;font-size:13px;cursor:pointer;">
+                Cancel
+            </button>
+            <button onclick="submitAssignOrg()" id="ao-submit-btn" class="btn-green-sm"
+                    style="padding:9px 22px;font-size:13px;">
+                <i class="fas fa-check me-1"></i>Assign
+            </button>
         </div>
     </div>
 </div>
@@ -203,22 +257,62 @@
     </div>
 </div>
 
+<!-- ─── UNIFIED VIEW MODAL ─── -->
+<div id="view-modal"
+     style="display:none;position:fixed;inset:0;z-index:9999;
+            background:rgba(0,0,0,0.65);backdrop-filter:blur(3px);
+            align-items:flex-start;justify-content:center;padding:32px 16px;overflow-y:auto;">
+    <div style="background:var(--card);border-radius:16px;border:1px solid var(--border);
+                width:100%;max-width:700px;display:flex;flex-direction:column;
+                box-shadow:0 24px 64px rgba(0,0,0,0.55);margin:auto;">
+        <!-- Modal header -->
+        <div style="background:var(--tbl-hd-navy);padding:16px 20px;
+                    border-radius:16px 16px 0 0;
+                    display:flex;align-items:center;gap:14px;flex-shrink:0;">
+            <div id="vm-avatar"
+                 style="width:46px;height:46px;border-radius:50%;
+                        display:flex;align-items:center;justify-content:center;
+                        font-size:20px;font-weight:800;color:white;flex-shrink:0;">?</div>
+            <div style="flex:1;min-width:0;">
+                <div id="vm-name"
+                     style="font-size:16px;font-weight:800;color:white;
+                            white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                    Loading…
+                </div>
+                <div id="vm-role-badge" style="margin-top:5px;"></div>
+            </div>
+            <button onclick="closeViewModal()"
+                    style="background:rgba(255,255,255,0.12);border:none;color:white;
+                           border-radius:8px;padding:7px 16px;font-size:12px;
+                           cursor:pointer;flex-shrink:0;">
+                <i class="fas fa-times me-1"></i>Close
+            </button>
+        </div>
+        <!-- Modal body -->
+        <div id="vm-body" style="padding:22px;"></div>
+    </div>
+</div>
+
 @section Scripts {
 <script>
 // ══════════════════════════════════════════════════════════════════════════════
 //  STATE
 // ══════════════════════════════════════════════════════════════════════════════
-let students        = [];
-let instructors     = [];
-let staffList       = [];
-let orgSignatories  = [];   // instructor org signatories
-let stuSignatories  = [];   // student org officers
-let staffPositions  = [];
-let curriculums     = [];
+let students           = [];
+let instructors        = [];
+let staffList          = [];
+let orgSignatories     = [];
+let stuSignatories     = [];
+let staffPositions     = [];
+let curriculums        = [];
 let selectedInstructor = null;
+let allUsers           = [];   // all active users for assign-org dropdown
+let allOrgPositions    = [];   // unified org positions list (from API)
+let allPeriodsList     = [];   // academic periods for view modal
 
 let currentRole    = 'all';
-let assignMode     = null;  // 'instructor' | 'staff' | null
+let assignMode     = null;
+let aoSelectedUser = null;
 
 // ══════════════════════════════════════════════════════════════════════════════
 //  INIT
@@ -226,43 +320,22 @@ let assignMode     = null;  // 'instructor' | 'staff' | null
 async function init() {
     try {
         await Promise.all([
-            loadStudents(),
-            loadInstructors(),
-            loadStaff(),
-            loadOrgSignatories(),
-            loadStuSignatories(),
-            loadStaffPositions(),
-            loadCurriculums()
+            loadStudents(), loadInstructors(), loadStaff(),
+            loadOrgSignatories(), loadStuSignatories(),
+            loadStaffPositions(), loadCurriculums(),
+            loadAllUsers(), loadAllOrgPositions(), loadAllPeriods()
         ]);
-        console.log('All loaded:', students.length, instructors.length, staffList.length);
         updateStats();
-        console.log('Stats updated');
         render();
-        console.log('Rendered');
-        populateStudentDropdown();
-    } catch(e) {
-        console.error('INIT FAILED:', e);
-    }
+    } catch(e) { console.error('INIT FAILED:', e); }
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
 //  LOADERS
 // ══════════════════════════════════════════════════════════════════════════════
 async function loadStudents() {
-    try {
-        const r = await fetch('/api/admin/students');
-        const d = await r.json();
-        console.log('loadStudents response:', d); // ADD THIS
-        if (!Array.isArray(d)) {
-            console.error('GetStudents error:', d?.error ?? d);
-            students = [];
-            return;
-        }
-        students = d;
-    } catch (e) {
-        console.error('loadStudents fetch error:', e);
-        students = [];
-    }
+    try { const r = await fetch('/api/admin/students'); const d = await r.json(); students = Array.isArray(d) ? d : []; }
+    catch { students = []; }
 }
 async function loadInstructors() {
     try { const r = await fetch('/api/admin/instructors'); instructors = await r.json(); } catch {}
@@ -296,17 +369,29 @@ async function loadCurriculums() {
     try { const r = await fetch('/api/admin/curriculums'); curriculums = await r.json(); } catch {}
     if (!Array.isArray(curriculums)) curriculums = [];
 }
+async function loadAllUsers() {
+    try { const r = await fetch('/api/admin/all-users'); allUsers = await r.json(); } catch {}
+    if (!Array.isArray(allUsers)) allUsers = [];
+}
+async function loadAllOrgPositions() {
+    try { const r = await fetch('/api/admin/all-org-positions'); allOrgPositions = await r.json(); } catch {}
+    if (!Array.isArray(allOrgPositions)) allOrgPositions = [];
+}
+async function loadAllPeriods() {
+    try { const r = await fetch('/api/student/periods'); allPeriodsList = await r.json(); } catch {}
+    if (!Array.isArray(allPeriodsList)) allPeriodsList = [];
+}
 
 // ══════════════════════════════════════════════════════════════════════════════
 //  STATS
 // ══════════════════════════════════════════════════════════════════════════════
 function updateStats() {
     const cleared = students.filter(s => s.cs === 'Cleared').length;
-    document.getElementById('stat-all').textContent         = students.length + instructors.length + staffList.length;
-    document.getElementById('stat-students').textContent    = students.length;
-    document.getElementById('stat-students-sub').textContent= `${cleared} cleared`;
-    document.getElementById('stat-instructors').textContent = instructors.length;
-    document.getElementById('stat-staff').textContent       = staffList.length;
+    document.getElementById('stat-all').textContent          = students.length + instructors.length + staffList.length;
+    document.getElementById('stat-students').textContent     = students.length;
+    document.getElementById('stat-students-sub').textContent = `${cleared} cleared`;
+    document.getElementById('stat-instructors').textContent  = instructors.length;
+    document.getElementById('stat-staff').textContent        = staffList.length;
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -314,39 +399,31 @@ function updateStats() {
 // ══════════════════════════════════════════════════════════════════════════════
 function switchRole(role) {
     currentRole = role;
-    closeDetail();
     closeAssignPanel();
-
     ['all','Student','Instructor','Staff','Org'].forEach(r =>
         document.getElementById('tab-' + r).classList.toggle('active', r === role)
     );
-
-    document.getElementById('main-panel').style.display  = role !== 'Org' ? '' : 'none';
-    document.getElementById('org-panel').style.display   = role === 'Org' ? '' : 'none';
-
+    document.getElementById('main-panel').style.display = role !== 'Org' ? '' : 'none';
+    document.getElementById('org-panel').style.display  = role === 'Org' ? '' : 'none';
     render();
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-//  MAIN RENDER DISPATCHER
+//  RENDER DISPATCHER
 // ══════════════════════════════════════════════════════════════════════════════
 function render() {
-    if (currentRole === 'Org') { renderOrgOfficers(); return; }
-    if (currentRole === 'Student')    { renderStudentTable();    return; }
-    if (currentRole === 'Instructor') { renderInstructorTable(); return; }
-    if (currentRole === 'Staff')      { renderStaffTable();      return; }
+    if (currentRole === 'Org')        { renderOrgOfficers();    return; }
+    if (currentRole === 'Student')    { renderStudentTable();   return; }
+    if (currentRole === 'Instructor') { renderInstructorTable();return; }
+    if (currentRole === 'Staff')      { renderStaffTable();     return; }
     renderAllTable();
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-//  ALL USERS TABLE (merged)
+//  ALL USERS TABLE
 // ══════════════════════════════════════════════════════════════════════════════
 function renderAllTable() {
     const panel = document.getElementById('main-panel');
-
-     // DEBUG: remove after fix
-    console.log('students:', students.length, 'instructors:', instructors.length, 'staff:', staffList.length);
-
     const rows  = [
         ...students.map(s => ({
             role: 'Student', name: s.name, id: s.idNum || '—',
@@ -354,19 +431,19 @@ function renderAllTable() {
             badge: s.cs === 'Cleared'
                 ? `<span style="${badgeStyle('#38a169','rgba(56,161,105,0.15)')}"><i class="fas fa-check-circle me-1"></i>Cleared</span>`
                 : `<span style="${badgeStyle('#f6ad55','rgba(246,173,85,0.15)')}"><i class="fas fa-clock me-1"></i>Pending</span>`,
-            action: ''
+            userId: s.id
         })),
         ...instructors.map(i => ({
             role: 'Instructor', name: i.name, id: i.employeeId || '—',
             meta: i.joinedDate || '—',
             badge: `<span style="${badgeStyle('#38a169','rgba(56,161,105,0.15)')}">Active</span>`,
-            action: `<button onclick="viewDetail(${i.id})" style="${btnStyle('#4299e1')}"><i class="fas fa-eye me-1"></i>View</button>`
+            userId: i.id
         })),
         ...staffList.map(s => ({
             role: 'Staff', name: s.name, id: s.id_number || '—',
             meta: '—',
             badge: `<span style="${badgeStyle('#38a169','rgba(56,161,105,0.15)')}">Active</span>`,
-            action: ''
+            userId: s.id
         }))
     ];
 
@@ -413,7 +490,12 @@ function renderAllTable() {
                             <td style="color:var(--muted);font-size:12px;">${escHtml(r.id)}</td>
                             <td style="color:var(--muted);font-size:12px;">${escHtml(r.meta)}</td>
                             <td>${r.badge}</td>
-                            <td>${r.action || '<span style="color:var(--muted);font-size:12px;">—</span>'}</td>
+                            <td>
+                                <button onclick="viewUser(${r.userId},'${r.role}')"
+                                        style="${btnStyle('#4299e1')}">
+                                    <i class="fas fa-eye me-1"></i>View
+                                </button>
+                            </td>
                         </tr>`).join('')}
                 </tbody>
             </table>
@@ -425,8 +507,6 @@ function renderAllTable() {
 // ══════════════════════════════════════════════════════════════════════════════
 function renderStudentTable() {
     const panel = document.getElementById('main-panel');
-
-    // sub-filter buttons inside student view
     const subFilterHtml = `
         <div class="d-flex gap-2 mb-3" style="padding:16px 16px 0;">
             <button class="ann-filter-btn active" id="sf-all"     onclick="subFilter('all')">All</button>
@@ -453,13 +533,15 @@ function renderStudentTable() {
                 <thead>
                     <tr>
                         <th>#</th><th>Name</th><th>Student No.</th>
-                        <th>Course</th><th>Year</th><th>Section</th><th>Status</th>
+                        <th>Course</th><th>Year</th><th>Section</th>
+                        <th>Status</th><th>Action</th>
                     </tr>
                 </thead>
                 <tbody id="student-tbody"></tbody>
             </table>
         </div>
-        <div id="student-empty" style="display:none;padding:48px 24px;text-align:center;color:var(--muted);font-size:13px;">
+        <div id="student-empty"
+             style="display:none;padding:48px 24px;text-align:center;color:var(--muted);font-size:13px;">
             <i class="fas fa-user-graduate" style="font-size:28px;opacity:0.3;display:block;margin-bottom:10px;"></i>
             No students match this filter.
         </div>`;
@@ -509,6 +591,11 @@ function renderStudentRows(f) {
                 ${s.cs === 'Cleared'
                     ? `<span style="${badgeStyle('#38a169','rgba(56,161,105,0.15)')}"><i class="fas fa-check-circle me-1"></i>Cleared</span>`
                     : `<span style="${badgeStyle('#f6ad55','rgba(246,173,85,0.15)')}"><i class="fas fa-clock me-1"></i>Pending</span>`}
+            </td>
+            <td>
+                <button onclick="viewUser(${s.id},'Student')" style="${btnStyle('#9f7aea')}">
+                    <i class="fas fa-eye me-1"></i>View
+                </button>
             </td>
         </tr>`).join('');
 }
@@ -565,8 +652,8 @@ function renderInstructorTable() {
                             <td style="color:var(--muted);font-size:12px;">${escHtml(inst.joinedDate ?? '—')}</td>
                             <td><span style="${badgeStyle('#38a169','rgba(56,161,105,0.15)')}">Active</span></td>
                             <td>
-                                <button onclick="viewDetail(${inst.id})"
-                                    style="${btnStyle('#4299e1')}">
+                                <button onclick="viewUser(${inst.id},'Instructor')"
+                                        style="${btnStyle('#4299e1')}">
                                     <i class="fas fa-eye me-1"></i>View
                                 </button>
                             </td>
@@ -611,7 +698,8 @@ function renderStaffTable() {
                 <thead>
                     <tr>
                         <th>#</th><th>Name</th><th>ID Number</th>
-                        <th>Position</th><th>Approved</th><th>Pending</th><th>Status</th>
+                        <th>Position</th><th>Approved</th><th>Pending</th>
+                        <th>Status</th><th>Action</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -633,6 +721,11 @@ function renderStaffTable() {
                             <td><span style="${badgeStyle('#68d391','rgba(56,161,105,0.15)')}">${s.approved}</span></td>
                             <td><span style="${badgeStyle('#f6e05e','rgba(236,201,75,0.15)')}">${s.pending}</span></td>
                             <td><span style="${badgeStyle('#38a169','rgba(56,161,105,0.15)')}">Active</span></td>
+                            <td>
+                                <button onclick="viewUser(${s.id},'Staff')" style="${btnStyle('#0d9488')}">
+                                    <i class="fas fa-eye me-1"></i>View
+                                </button>
+                            </td>
                         </tr>`).join('')}
                 </tbody>
             </table>
@@ -640,128 +733,566 @@ function renderStaffTable() {
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-//  ORG OFFICERS (STUDENT SIGNATORIES)
+//  ORG OFFICERS — UNIFIED (all sources, with View + Remove actions)
 // ══════════════════════════════════════════════════════════════════════════════
 function renderOrgOfficers() {
-    const tbody = document.getElementById('sig-tbody');
-    const empty = document.getElementById('sig-empty');
+    const tbody = document.getElementById('all-org-tbody');
+    const empty = document.getElementById('all-org-empty');
     tbody.innerHTML = '';
 
-    if (!stuSignatories.length) {
-        empty.style.display = 'block'; return;
+    // Prefer dedicated API result; fall back to merging loaded arrays
+    let positions = allOrgPositions;
+    if (!positions.length) {
+        positions = [
+            ...stuSignatories.map(s => ({
+                source: 'sig', id: s.id, userId: s.userId ?? 0,
+                name: s.name, role: 'Student', idNum: s.idNum ?? '—',
+                posTitle: s.position ?? '—', courseCode: '', yearLevel: 0, section: ''
+            })),
+            ...orgSignatories.map(s => ({
+                source: 'org', id: s.id, userId: s.userId ?? 0,
+                name: s.name, role: 'Instructor', idNum: s.eid ?? '—',
+                posTitle: s.pos ?? '—', courseCode: s.courseCode ?? '',
+                yearLevel: s.yearLevel ?? 0, section: s.section ?? ''
+            }))
+        ];
     }
+
+    if (!positions.length) { empty.style.display = 'block'; return; }
     empty.style.display = 'none';
 
-    stuSignatories.forEach((s, i) => {
+    const roleColorMap = { Student:'#9f7aea', Instructor:'#4299e1', Staff:'#0d9488', Admin:'#ed8936' };
+
+    positions.forEach((p, i) => {
+        const rc = roleColorMap[p.role] ?? '#718096';
+        const advSection = p.posTitle === 'Class Adviser' && p.courseCode
+            ? `${p.courseCode} – ${p.yearLevel}${p.section ? ', Sec ' + p.section : ''}`
+            : '—';
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td style="color:var(--muted);">${String(i+1).padStart(2,'0')}</td>
             <td>
                 <div class="d-flex align-items-center gap-2">
-                    <div class="user-avatar-sm" style="background:#9f7aea;">${escHtml(s.name.charAt(0))}</div>
-                    <span style="font-weight:600;font-size:13px;">${escHtml(s.name)}</span>
+                    <div class="user-avatar-sm" style="background:${rc};">${escHtml(p.name.charAt(0))}</div>
+                    <span style="font-weight:600;font-size:13px;">${escHtml(p.name)}</span>
                 </div>
             </td>
-            <td style="color:var(--muted);">${escHtml(s.idNum || '—')}</td>
-            <td>${escHtml(s.course || '—')}</td>
-            <td><span style="${badgeStyle('#9f7aea','rgba(159,122,234,0.15)')};">${escHtml(s.position || '—')}</span></td>
-            <td>
-                <button onclick="removeStuSignatory(${s.id})"
-                        style="${btnStyle('#e53e3e','rgba(229,62,62,0.12)')}">
-                    <i class="fas fa-trash-alt me-1"></i>Remove
-                </button>
+            <td><span style="${badgeStyle(rc, rc + '22')}">${escHtml(p.role)}</span></td>
+            <td style="color:var(--muted);font-size:12px;">${escHtml(p.idNum)}</td>
+            <td><span style="${badgeStyle('#38a169','rgba(56,161,105,0.15)')}">${escHtml(p.posTitle)}</span></td>
+            <td style="font-size:12px;color:var(--muted);">${escHtml(advSection)}</td>
+            <td style="text-align:center;">
+                <div style="display:flex;gap:6px;justify-content:center;">
+                    <button onclick="viewUser(${p.userId},'${escHtml(p.role)}')"
+                            style="${btnStyle('#4299e1','rgba(66,153,225,0.12)')}">
+                        <i class="fas fa-eye me-1"></i>View
+                    </button>
+                    <button onclick="removeOrgPosition('${p.source}', ${p.id})"
+                            style="${btnStyle('#e53e3e','rgba(229,62,62,0.12)')}">
+                        <i class="fas fa-trash-alt me-1"></i>Remove
+                    </button>
+                </div>
             </td>`;
         tbody.appendChild(tr);
     });
 }
 
-function populateStudentDropdown() {
-    const sel = document.getElementById('sig-student-sel');
-    sel.innerHTML = '<option value="">-- Select Student --</option>';
-    students.forEach(s => {
-        const opt = document.createElement('option');
-        opt.value       = s.id;
-        opt.textContent = `${s.name} (${s.idNum || '—'})`;
-        sel.appendChild(opt);
-    });
-}
-
-async function addStudentSignatory() {
-    const userId   = document.getElementById('sig-student-sel').value;
-    const position = document.getElementById('sig-position').value.trim();
-    if (!userId || !position) { alert('Please select a student and enter a position.'); return; }
+async function removeOrgPosition(source, id) {
+    if (!confirm('Remove this position assignment?')) return;
+    const url = source === 'sig'
+        ? `/api/admin/student-signatories/${id}`
+        : `/api/admin/org-signatories/${id}`;
     try {
-        const res  = await fetch('/api/admin/student-signatories', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId: parseInt(userId), position })
-        });
-        const data = await res.json();
-        if (data.success) {
-            await loadStuSignatories();
-            renderOrgOfficers();
-            document.getElementById('sig-student-sel').value = '';
-            document.getElementById('sig-position').value    = '';
-        } else { alert(data.error || 'Failed to assign position.'); }
-    } catch (e) { alert('Error: ' + e.message); }
-}
-
-async function removeStuSignatory(id) {
-    if (!confirm('Remove this org officer assignment?')) return;
-    try {
-        await fetch(`/api/admin/student-signatories/${id}`, { method: 'DELETE' });
-        stuSignatories = stuSignatories.filter(s => s.id !== id);
+        await fetch(url, { method: 'DELETE' });
+        await loadAllOrgPositions();
+        await loadStuSignatories();
+        await loadOrgSignatories();
         renderOrgOfficers();
     } catch (e) { alert('Error: ' + e.message); }
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-//  INSTRUCTOR DETAIL
+//  ASSIGN ORG POSITION MODAL
 // ══════════════════════════════════════════════════════════════════════════════
-async function viewDetail(id) {
-    document.getElementById('detail-panel').style.display  = 'block';
-    document.getElementById('det-error').style.display     = 'none';
-    document.getElementById('det-header-name').textContent = 'Loading...';
-    document.getElementById('det-name').textContent        = 'Loading...';
-    document.getElementById('det-avatar').textContent      = '?';
-    ['det-first','det-last','det-eid'].forEach(fid => {
-        const el = document.getElementById(fid); if (el) el.value = '';
-    });
-    document.getElementById('det-positions').innerHTML = '';
-    setTimeout(() => document.getElementById('detail-panel')
-        .scrollIntoView({ behavior:'smooth', block:'start' }), 50);
-
-    try {
-        const res  = await fetch(`/api/admin/instructors/${id}`);
-        const data = await res.json();
-        if (data.error) {
-            document.getElementById('det-error').style.display     = 'block';
-            document.getElementById('det-error-msg').textContent   = data.error;
-            document.getElementById('det-header-name').textContent = 'Error';
-            document.getElementById('det-name').textContent        = 'Error';
-            return;
-        }
-        const fullName = [data.firstName, data.lastName].filter(x => x && x !== '—').join(' ');
-        document.getElementById('det-header-name').textContent = fullName || '—';
-        document.getElementById('det-avatar').textContent      = data.firstName?.charAt(0) ?? '?';
-        document.getElementById('det-name').textContent        = fullName || '—';
-        document.getElementById('det-eid-label').textContent   = `Employee ID: ${data.employeeId ?? '—'}`;
-        document.getElementById('det-first').value             = data.firstName  ?? '—';
-        document.getElementById('det-last').value              = data.lastName   ?? '—';
-        document.getElementById('det-eid').value               = data.employeeId ?? '—';
-
-        const posDiv    = document.getElementById('det-positions');
-        const positions = Array.isArray(data.positions) ? data.positions : [];
-        posDiv.innerHTML = positions.length
-            ? positions.map(p => `<span style="${badgeStyle('#4299e1','rgba(66,153,225,0.15)')};font-size:11px;">${escHtml(p)}</span>`).join('')
-            : `<span style="font-size:12px;color:var(--muted);">No positions assigned</span>`;
-    } catch (e) {
-        document.getElementById('det-error').style.display     = 'block';
-        document.getElementById('det-error-msg').textContent   = e.message;
-        document.getElementById('det-header-name').textContent = 'Error';
-    }
+function openAssignOrgModal() {
+    aoSelectedUser = null;
+    document.getElementById('ao-search').value           = '';
+    document.getElementById('ao-pill').style.display     = 'none';
+    document.getElementById('ao-dropdown').style.display = 'none';
+    document.getElementById('ao-pos').value              = '';
+    document.getElementById('ao-custom-wrap').style.display  = 'none';
+    document.getElementById('ao-adviser-wrap').style.display = 'none';
+    document.getElementById('ao-error').style.display        = 'none';
+    populateAoCaCourses();
+    document.getElementById('assign-org-overlay').style.display = 'block';
+    document.getElementById('assign-org-modal').style.display   = 'flex';
+    document.getElementById('assign-org-modal').style.flexDirection = 'column';
+}
+function closeAssignOrgModal() {
+    document.getElementById('assign-org-overlay').style.display = 'none';
+    document.getElementById('assign-org-modal').style.display   = 'none';
 }
 
-function closeDetail() { document.getElementById('detail-panel').style.display = 'none'; }
+function filterAoDD(val) {
+    const dd      = document.getElementById('ao-dropdown');
+    const q       = val.trim().toLowerCase();
+    const matches = allUsers.filter(u =>
+        u.name.toLowerCase().includes(q) || u.idNum.toLowerCase().includes(q)
+    ).slice(0, 12);
+
+    if (!q || !matches.length) { dd.style.display = 'none'; return; }
+
+    dd.innerHTML = matches.map(u => `
+        <div onclick="selectAoUser(${u.id})"
+             style="padding:10px 14px;cursor:pointer;display:flex;align-items:center;gap:10px;
+                    border-bottom:1px solid var(--border);transition:background 0.12s;"
+             onmouseover="this.style.background='rgba(56,161,105,0.08)'"
+             onmouseout="this.style.background=''">
+            <div class="user-avatar-sm" style="background:#38a169;flex-shrink:0;">${escHtml(u.name.charAt(0))}</div>
+            <div>
+                <div style="font-size:13px;font-weight:600;color:var(--text);">${escHtml(u.name)}</div>
+                <div style="font-size:11px;color:var(--muted);">${escHtml(u.role)} · ${escHtml(u.idNum)}</div>
+            </div>
+        </div>`).join('');
+    dd.style.display = 'block';
+}
+function selectAoUser(id) {
+    const u = allUsers.find(x => x.id === id);
+    if (!u) return;
+    aoSelectedUser = u;
+    document.getElementById('ao-search').value       = u.name;
+    document.getElementById('ao-dropdown').style.display = 'none';
+    document.getElementById('ao-pill-av').textContent    = u.name.charAt(0);
+    document.getElementById('ao-pill-name').textContent  = u.name;
+    document.getElementById('ao-pill-meta').textContent  = `${u.role} · ${u.idNum}`;
+    document.getElementById('ao-pill').style.display     = 'flex';
+}
+function clearAoSelection() {
+    aoSelectedUser = null;
+    document.getElementById('ao-search').value       = '';
+    document.getElementById('ao-pill').style.display = 'none';
+}
+
+function onAoPosChange(val) {
+    document.getElementById('ao-custom-wrap').style.display  = val === '__custom__'    ? '' : 'none';
+    document.getElementById('ao-adviser-wrap').style.display = val === 'Class Adviser' ? '' : 'none';
+}
+
+function populateAoCaCourses() {
+    const sel     = document.getElementById('ao-ca-course');
+    const courses = [...new Set(curriculums.map(c => c.courseCode).filter(Boolean))].sort();
+    sel.innerHTML = '<option value="" disabled selected>— Select Course —</option>' +
+        courses.map(c => `<option value="${escHtml(c)}">${escHtml(c)}</option>`).join('');
+    document.getElementById('ao-ca-year').innerHTML    = '<option value="" disabled selected>— Year —</option>';
+    document.getElementById('ao-ca-section').innerHTML = '<option value="" disabled selected>— Section —</option>';
+}
+function aoFilterYear() {
+    const course = document.getElementById('ao-ca-course').value;
+    const years  = [...new Set(curriculums.filter(c => c.courseCode === course).map(c => c.yearLevel))].sort();
+    const sel    = document.getElementById('ao-ca-year');
+    sel.innerHTML = '<option value="" disabled selected>— Year —</option>' +
+        years.map(y => {
+            const label = y === 1 ? '1st Year' : y === 2 ? '2nd Year' : y === 3 ? '3rd Year' : `${y}th Year`;
+            return `<option value="${y}">${label}</option>`;
+        }).join('');
+    document.getElementById('ao-ca-section').innerHTML = '<option value="" disabled selected>— Section —</option>';
+}
+function aoFilterSection() {
+    const course   = document.getElementById('ao-ca-course').value;
+    const year     = parseInt(document.getElementById('ao-ca-year').value);
+    const sections = curriculums.filter(c => c.courseCode === course && c.yearLevel === year)
+                                .map(c => c.section).filter(Boolean).sort();
+    const sel = document.getElementById('ao-ca-section');
+    sel.innerHTML = '<option value="" disabled selected>— Section —</option>' +
+        sections.map(s => `<option value="${escHtml(s)}">${escHtml(s)}</option>`).join('');
+}
+
+async function submitAssignOrg() {
+    const errEl = document.getElementById('ao-error');
+    errEl.style.display = 'none';
+
+    if (!aoSelectedUser) { errEl.textContent = 'Please select a user.'; errEl.style.display = ''; return; }
+    const posSelect = document.getElementById('ao-pos').value;
+    if (!posSelect)   { errEl.textContent = 'Please select a position.'; errEl.style.display = ''; return; }
+
+    const posTitle = posSelect === '__custom__'
+        ? document.getElementById('ao-custom').value.trim()
+        : posSelect;
+    if (!posTitle) { errEl.textContent = 'Please enter a custom position title.'; errEl.style.display = ''; return; }
+
+    const btn = document.getElementById('ao-submit-btn');
+    btn.disabled  = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Saving…';
+
+    try {
+        let res, data;
+        if (posTitle === 'Class Adviser') {
+            const course    = document.getElementById('ao-ca-course').value;
+            const yearLevel = parseInt(document.getElementById('ao-ca-year').value);
+            const section   = document.getElementById('ao-ca-section').value;
+            if (!course || !yearLevel || !section) {
+                errEl.textContent = 'Please select course, year level, and section for Class Adviser.';
+                errEl.style.display = ''; btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-check me-1"></i>Assign'; return;
+            }
+            const cur = curriculums.find(c => c.courseCode === course && c.yearLevel === yearLevel && c.section === section);
+            if (!cur) {
+                errEl.textContent = 'Section not found in curriculum. Please add the curriculum first.';
+                errEl.style.display = ''; btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-check me-1"></i>Assign'; return;
+            }
+            res  = await fetch('/api/admin/org-signatories', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: aoSelectedUser.id, pos: 'Class Adviser', curriculumId: cur.id })
+            });
+            data = await res.json();
+        } else if (aoSelectedUser.role === 'Student') {
+            res  = await fetch('/api/admin/student-signatories', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: aoSelectedUser.id, position: posTitle })
+            });
+            data = await res.json();
+        } else {
+            res  = await fetch('/api/admin/org-signatories', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: aoSelectedUser.id, pos: posTitle })
+            });
+            data = await res.json();
+        }
+
+        if (data.success) {
+            closeAssignOrgModal();
+            await loadAllOrgPositions();
+            await loadStuSignatories();
+            await loadOrgSignatories();
+            renderOrgOfficers();
+        } else {
+            errEl.textContent = data.error || 'Failed to assign.';
+            errEl.style.display = '';
+        }
+    } catch (e) {
+        errEl.textContent = 'Error: ' + e.message;
+        errEl.style.display = '';
+    }
+    btn.disabled  = false;
+    btn.innerHTML = '<i class="fas fa-check me-1"></i>Assign';
+}
+
+// Close assign-org dropdown when clicking outside
+document.addEventListener('click', e => {
+    const dd  = document.getElementById('ao-dropdown');
+    const inp = document.getElementById('ao-search');
+    if (dd && inp && !inp.contains(e.target) && !dd.contains(e.target))
+        dd.style.display = 'none';
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  UNIFIED VIEW MODAL
+// ══════════════════════════════════════════════════════════════════════════════
+async function viewUser(id, role) {
+    const modal = document.getElementById('view-modal');
+    modal.style.display = 'flex';
+    document.getElementById('vm-name').textContent     = 'Loading…';
+    document.getElementById('vm-avatar').textContent   = '?';
+    document.getElementById('vm-role-badge').innerHTML = '';
+    document.getElementById('vm-body').innerHTML       = vmLoadingHtml();
+
+    if      (role === 'Student')    await vmLoadStudent(id);
+    else if (role === 'Instructor') await vmLoadInstructor(id);
+    else if (role === 'Staff')           vmLoadStaff(id);
+}
+
+function closeViewModal() {
+    document.getElementById('view-modal').style.display = 'none';
+}
+
+document.getElementById('view-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeViewModal();
+});
+
+// ── Student view ─────────────────────────────────────────────────────────────
+async function vmLoadStudent(id) {
+    const student = students.find(s => s.id === id);
+    if (!student) return;
+
+    document.getElementById('vm-name').textContent        = student.name;
+    document.getElementById('vm-avatar').textContent      = student.name.charAt(0);
+    document.getElementById('vm-avatar').style.background = '#9f7aea';
+    document.getElementById('vm-role-badge').innerHTML    =
+        `<span style="${badgeStyle('#c4a3fb','rgba(159,122,234,0.25)')}">
+            <i class="fas fa-user-graduate me-1"></i>Student
+         </span>`;
+
+    let data = { subjects: [], orgs: [] };
+    try {
+        const res = await fetch(`/api/admin/students/${id}/clearance`);
+        data = await res.json();
+    } catch {}
+
+    if (data.error) { document.getElementById('vm-body').innerHTML = vmErrorHtml(data.error); return; }
+
+    const subjects  = data.subjects || [];
+    const orgs      = data.orgs     || [];
+    const totalSub  = subjects.length;
+    const clrSub    = subjects.filter(s => s.status === 'Cleared').length;
+    const totalOrg  = orgs.length;
+    const clrOrg    = orgs.filter(o => o.status === 'Cleared').length;
+
+    const subRows = totalSub
+        ? subjects.map((s, i) => `
+            <tr>
+                <td style="color:var(--muted);">${String(i+1).padStart(2,'0')}</td>
+                <td><span style="${badgeStyle('#4299e1','rgba(66,153,225,0.13)')}">${escHtml(s.code)}</span></td>
+                <td style="color:var(--muted);font-size:12px;">${escHtml(s.desc)}</td>
+                <td>
+                    ${s.status === 'Cleared'
+                        ? `<span style="${badgeStyle('#38a169','rgba(56,161,105,0.15)')}"><i class="fas fa-check-circle me-1"></i>Cleared</span>`
+                        : `<span style="${badgeStyle('#f6ad55','rgba(246,173,85,0.15)')}"><i class="fas fa-clock me-1"></i>Pending</span>`}
+                </td>
+            </tr>`).join('')
+        : `<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:28px 0;font-size:12px;">
+               <i class="fas fa-book" style="display:block;font-size:22px;opacity:0.25;margin-bottom:8px;"></i>
+               No subject clearances on record.</td></tr>`;
+
+    const orgRows = totalOrg
+        ? orgs.map((o, i) => `
+            <tr>
+                <td style="color:var(--muted);">${String(i+1).padStart(2,'0')}</td>
+                <td style="font-weight:600;font-size:13px;">${escHtml(o.position)}</td>
+                <td>
+                    ${o.status === 'Cleared'
+                        ? `<span style="${badgeStyle('#38a169','rgba(56,161,105,0.15)')}"><i class="fas fa-check-circle me-1"></i>Cleared</span>`
+                        : `<span style="${badgeStyle('#f6ad55','rgba(246,173,85,0.15)')}"><i class="fas fa-clock me-1"></i>Pending</span>`}
+                </td>
+            </tr>`).join('')
+        : `<tr><td colspan="3" style="text-align:center;color:var(--muted);padding:28px 0;font-size:12px;">
+               <i class="fas fa-id-badge" style="display:block;font-size:22px;opacity:0.25;margin-bottom:8px;"></i>
+               No organization clearances on record.</td></tr>`;
+
+    document.getElementById('vm-body').innerHTML = `
+        ${vmProfileCard([
+            { label:'Student No.', value: student.idNum || '—' },
+            { label:'Course',      value: student.course || '—' },
+            { label:'Year Level',  value: student.year   || '—' },
+            { label:'Section',     value: student.section || '—' },
+            { label:'Overall Status', raw: true, value: student.cs === 'Cleared'
+                ? `<span style="${badgeStyle('#38a169','rgba(56,161,105,0.15)')}"><i class="fas fa-check-circle me-1"></i>Cleared</span>`
+                : `<span style="${badgeStyle('#f6ad55','rgba(246,173,85,0.15)')}"><i class="fas fa-clock me-1"></i>Pending</span>` }
+        ])}
+        ${vmProgressBar(clrSub + clrOrg, totalSub + totalOrg, 'Overall Clearance Progress')}
+        <div style="margin-bottom:6px;">
+            ${vmSectionHeader('fa-book','#4299e1','Subject Clearances')}
+            ${vmCountBadge(clrSub, totalSub, '#4299e1')}
+        </div>
+        <div class="table-responsive mb-4">
+            <table class="data-table">
+                <thead><tr><th>#</th><th>Code</th><th>Description</th><th>Status</th></tr></thead>
+                <tbody>${subRows}</tbody>
+            </table>
+        </div>
+        <div style="margin-bottom:6px;">
+            ${vmSectionHeader('fa-id-badge','#9f7aea','Organization Clearances')}
+            ${vmCountBadge(clrOrg, totalOrg, '#9f7aea')}
+        </div>
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead><tr><th>#</th><th>Position / Organization</th><th>Status</th></tr></thead>
+                <tbody>${orgRows}</tbody>
+            </table>
+        </div>`;
+}
+
+// ── Instructor view ──────────────────────────────────────────────────────────
+async function vmLoadInstructor(id) {
+    const inst = instructors.find(i => i.id === id);
+    if (inst) {
+        document.getElementById('vm-name').textContent        = inst.name;
+        document.getElementById('vm-avatar').textContent      = inst.name.charAt(0);
+        document.getElementById('vm-avatar').style.background = '#4299e1';
+        document.getElementById('vm-role-badge').innerHTML    =
+            `<span style="${badgeStyle('#90cdf4','rgba(66,153,225,0.25)')}">
+                <i class="fas fa-chalkboard-teacher me-1"></i>Instructor
+             </span>`;
+    }
+
+    const [detRes, subResRaw] = await Promise.all([
+        fetch(`/api/admin/instructors/${id}`),
+        fetch(`/api/admin/instructors/${id}/subjects`)
+    ]);
+    const det  = await detRes.json();
+    const subs = Array.isArray(await subResRaw.json().catch(() => [])) ? await subResRaw.json().catch(() => []) : [];
+
+    if (det.error) { document.getElementById('vm-body').innerHTML = vmErrorHtml(det.error); return; }
+
+    const fullName  = [det.firstName, det.lastName].filter(x => x && x !== '—').join(' ');
+    const positions = Array.isArray(det.positions) ? det.positions : [];
+
+    document.getElementById('vm-name').textContent   = fullName || '—';
+    document.getElementById('vm-avatar').textContent = det.firstName?.charAt(0) ?? '?';
+
+    const totalAppr = subs.reduce((a, s) => a + (s.approved || 0), 0);
+    const totalPend = subs.reduce((a, s) => a + (s.pending  || 0), 0);
+
+    const subRows = subs.length
+        ? subs.map((s, i) => `
+            <tr>
+                <td style="color:var(--muted);">${String(i+1).padStart(2,'0')}</td>
+                <td><span style="${badgeStyle('#4299e1','rgba(66,153,225,0.13)')}">${escHtml(s.code)}</span></td>
+                <td style="color:var(--muted);font-size:12px;">${escHtml(s.desc)}</td>
+                <td><span style="${badgeStyle('#68d391','rgba(56,161,105,0.15)')}">${s.approved}</span></td>
+                <td><span style="${badgeStyle('#f6e05e','rgba(236,201,75,0.15)')}">${s.pending}</span></td>
+            </tr>`).join('')
+        : `<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:28px 0;font-size:12px;">
+               <i class="fas fa-book" style="display:block;font-size:22px;opacity:0.25;margin-bottom:8px;"></i>
+               No subjects assigned yet.</td></tr>`;
+
+    document.getElementById('vm-body').innerHTML = `
+        ${vmProfileCard([
+            { label:'Employee ID', value: det.employeeId || '—' },
+            { label:'Date Joined', value: inst?.joinedDate || '—' },
+            { label:'Positions', raw: true, value: positions.length
+                ? positions.map(p => `<span style="${badgeStyle('#4299e1','rgba(66,153,225,0.13)')}font-size:11px;">${escHtml(p)}</span>`).join(' ')
+                : '<span style="color:var(--muted);font-size:12px;">None assigned</span>' }
+        ])}
+        <div class="row g-2 mb-4">
+            ${vmMiniStat('fa-book','#4299e1', subs.length, 'Subjects')}
+            ${vmMiniStat('fa-check-circle','#38a169', totalAppr, 'Approved')}
+            ${vmMiniStat('fa-clock','#f6ad55', totalPend, 'Pending')}
+        </div>
+        <div style="margin-bottom:6px;">
+            ${vmSectionHeader('fa-book','#4299e1','Assigned Subjects')}
+            ${vmCountBadge(totalAppr, totalAppr + totalPend, '#4299e1')}
+        </div>
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr><th>#</th><th>Code</th><th>Description</th><th>Approved</th><th>Pending</th></tr>
+                </thead>
+                <tbody>${subRows}</tbody>
+            </table>
+        </div>`;
+}
+
+// ── Staff view ───────────────────────────────────────────────────────────────
+function vmLoadStaff(id) {
+    const staff = staffList.find(s => s.id === id);
+    if (!staff) return;
+
+    document.getElementById('vm-name').textContent        = staff.name;
+    document.getElementById('vm-avatar').textContent      = staff.name.charAt(0);
+    document.getElementById('vm-avatar').style.background = '#0d9488';
+    document.getElementById('vm-role-badge').innerHTML    =
+        `<span style="${badgeStyle('#81e6d9','rgba(13,148,136,0.25)')}">
+            <i class="fas fa-user-tie me-1"></i>Staff
+         </span>`;
+
+    const myPositions = staffPositions.filter(p => p.name === staff.name);
+    const totalAppr   = myPositions.reduce((a, p) => a + (p.approved || 0), 0);
+    const totalPend   = myPositions.reduce((a, p) => a + (p.pending  || 0), 0);
+
+    const posRows = myPositions.length
+        ? myPositions.map((p, i) => `
+            <tr>
+                <td style="color:var(--muted);">${String(i+1).padStart(2,'0')}</td>
+                <td><span style="${badgeStyle('#0d9488','rgba(13,148,136,0.15)')}">${escHtml(p.pos)}</span></td>
+                <td><span style="${badgeStyle('#68d391','rgba(56,161,105,0.15)')}">${p.approved ?? 0}</span></td>
+                <td><span style="${badgeStyle('#f6e05e','rgba(236,201,75,0.15)')}">${p.pending  ?? 0}</span></td>
+            </tr>`).join('')
+        : `<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:28px 0;font-size:12px;">
+               <i class="fas fa-id-badge" style="display:block;font-size:22px;opacity:0.25;margin-bottom:8px;"></i>
+               No positions assigned yet.</td></tr>`;
+
+    document.getElementById('vm-body').innerHTML = `
+        ${vmProfileCard([
+            { label:'ID Number', value: staff.id_number || '—' }
+        ])}
+        <div class="row g-2 mb-4">
+            ${vmMiniStat('fa-id-badge','#0d9488', myPositions.length, 'Positions')}
+            ${vmMiniStat('fa-check-circle','#38a169', totalAppr, 'Approved')}
+            ${vmMiniStat('fa-clock','#f6ad55', totalPend, 'Pending')}
+        </div>
+        <div style="margin-bottom:6px;">
+            ${vmSectionHeader('fa-id-badge','#0d9488','Assigned Positions')}
+        </div>
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead><tr><th>#</th><th>Position</th><th>Approved</th><th>Pending</th></tr></thead>
+                <tbody>${posRows}</tbody>
+            </table>
+        </div>`;
+}
+
+// ── View modal helpers ────────────────────────────────────────────────────────
+function vmLoadingHtml() {
+    return `<div style="text-align:center;padding:52px 24px;color:var(--muted);">
+        <i class="fas fa-circle-notch fa-spin" style="font-size:28px;color:#4299e1;display:block;margin-bottom:14px;"></i>
+        <div style="font-size:13px;">Loading…</div>
+    </div>`;
+}
+function vmErrorHtml(msg) {
+    return `<div style="text-align:center;padding:40px 24px;">
+        <i class="fas fa-exclamation-triangle" style="font-size:30px;color:#fc8181;display:block;margin-bottom:12px;"></i>
+        <div style="font-size:13px;color:var(--muted);">${escHtml(msg)}</div>
+    </div>`;
+}
+function vmProfileCard(fields) {
+    return `<div style="background:rgba(66,153,225,0.06);border:1px solid rgba(66,153,225,0.18);
+                        border-radius:10px;padding:14px 18px;margin-bottom:20px;">
+        <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;
+                    letter-spacing:1px;margin-bottom:12px;">
+            <i class="fas fa-id-card me-1" style="color:#4299e1;"></i>Profile
+        </div>
+        <div class="row g-2">
+            ${fields.map(f => `
+                <div class="col-md-6 col-12">
+                    <div style="font-size:11px;color:var(--muted);margin-bottom:3px;">${f.label}</div>
+                    <div style="font-size:13px;font-weight:600;color:var(--text);">
+                        ${f.raw ? f.value : escHtml(String(f.value))}
+                    </div>
+                </div>`).join('')}
+        </div>
+    </div>`;
+}
+function vmMiniStat(icon, color, value, label) {
+    return `<div class="col-4">
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;
+                    padding:12px 14px;text-align:center;">
+            <i class="fas ${icon}" style="color:${color};font-size:16px;display:block;margin-bottom:6px;"></i>
+            <div style="font-size:20px;font-weight:800;color:var(--text);">${value}</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px;">${label}</div>
+        </div>
+    </div>`;
+}
+function vmSectionHeader(icon, color, title) {
+    return `<div style="display:inline-flex;align-items:center;gap:6px;
+                        font-size:12px;font-weight:700;color:${color};
+                        text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">
+        <i class="fas ${icon}"></i>${title}
+    </div>`;
+}
+function vmCountBadge(done, total, color) {
+    if (total === 0) return '';
+    const pct = Math.round((done / total) * 100);
+    return `<span style="float:right;font-size:11px;color:${color};font-weight:700;">
+        ${done}/${total} (${pct}%)
+    </span>`;
+}
+function vmProgressBar(done, total, label) {
+    if (total === 0) return '';
+    const pct      = Math.round((done / total) * 100);
+    const barColor = pct === 100 ? '#38a169' : pct >= 50 ? '#4299e1' : '#f6ad55';
+    return `<div style="margin-bottom:20px;">
+        <div style="display:flex;justify-content:space-between;font-size:11px;
+                    color:var(--muted);margin-bottom:6px;">
+            <span>${label}</span>
+            <span style="font-weight:700;color:${barColor};">${pct}% (${done}/${total})</span>
+        </div>
+        <div style="background:rgba(255,255,255,0.08);border-radius:20px;height:8px;overflow:hidden;">
+            <div style="height:100%;width:${pct}%;background:${barColor};
+                        border-radius:20px;transition:width 0.4s ease;"></div>
+        </div>
+    </div>`;
+}
 
 // ══════════════════════════════════════════════════════════════════════════════
 //  ASSIGN PANELS (Instructor signatories / Staff positions)
@@ -932,14 +1463,13 @@ function closeAssignPanel() {
 //  INSTRUCTOR ASSIGN — SEARCH DROPDOWN
 // ══════════════════════════════════════════════════════════════════════════════
 function filterInstDD(q) {
-    const dd = document.getElementById('ia-dropdown');
+    const dd   = document.getElementById('ia-dropdown');
     if (!dd) return;
     const term = q.toLowerCase().trim();
     const hits = instructors.filter(i =>
         term === '' || i.name.toLowerCase().includes(term) ||
         (i.employeeId ?? '').toLowerCase().includes(term)
     ).slice(0, 8);
-
     dd.innerHTML = hits.length === 0
         ? `<div style="padding:12px 16px;font-size:12px;color:var(--muted);text-align:center;">No instructors found.</div>`
         : hits.map(i => `
@@ -970,8 +1500,8 @@ function selectInst(id) {
 
 function clearInstSelection() {
     selectedInstructor = null;
-    document.getElementById('ia-pill').style.display   = 'none';
-    document.getElementById('ia-search').value         = '';
+    document.getElementById('ia-pill').style.display     = 'none';
+    document.getElementById('ia-search').value           = '';
     document.getElementById('ia-dropdown').style.display = 'none';
 }
 
@@ -1016,7 +1546,7 @@ function iaFilterYear() {
     yearSel.innerHTML = `<option value="" disabled selected>— Year —</option>`;
     years.forEach(y => {
         const lbl = y == 1 ? '1st Year' : y == 2 ? '2nd Year' : y == 3 ? '3rd Year' : '4th Year';
-        const o   = document.createElement('option'); o.value = y; o.textContent = lbl; yearSel.appendChild(o);
+        const o = document.createElement('option'); o.value = y; o.textContent = lbl; yearSel.appendChild(o);
     });
     document.getElementById('ia-ca-section').innerHTML = `<option value="" disabled selected>— Section —</option>`;
 }
@@ -1040,15 +1570,15 @@ function iaFilterSection() {
 }
 
 function iaUpdatePreview() {
-    const preview = document.getElementById('ia-ca-preview');
+    const preview  = document.getElementById('ia-ca-preview');
     if (!preview) return;
-    const secSel  = document.getElementById('ia-ca-section');
-    const selected= curriculums.find(c => String(c.id) === String(secSel?.value));
+    const secSel   = document.getElementById('ia-ca-section');
+    const selected = curriculums.find(c => String(c.id) === String(secSel?.value));
     preview.textContent = selected ? selected.section : '—';
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-//  ADD / REMOVE — ORG SIGNATORIES (Instructor)
+//  ADD / REMOVE — ORG SIGNATORIES (Instructor assign panel)
 // ══════════════════════════════════════════════════════════════════════════════
 async function addOrgSignatory() {
     if (!selectedInstructor) { alert('Please select an instructor first.'); return; }
@@ -1102,7 +1632,10 @@ async function addOrgSignatory() {
             renderAssignedSignatories();
             clearInstSelection();
             if (document.getElementById('ia-pos'))        document.getElementById('ia-pos').value = '';
-            if (document.getElementById('ia-pos-custom')) { document.getElementById('ia-pos-custom').value = ''; document.getElementById('ia-pos-custom').style.display = 'none'; }
+            if (document.getElementById('ia-pos-custom')) {
+                document.getElementById('ia-pos-custom').value        = '';
+                document.getElementById('ia-pos-custom').style.display = 'none';
+            }
         } else { alert('Error: ' + (data.error ?? 'Unknown')); }
     } catch (e) { alert('Error: ' + e.message); }
 }
@@ -1230,13 +1763,13 @@ function renderAssignedPositions() {
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-//  HELPERS
+//  SHARED HELPERS
 // ══════════════════════════════════════════════════════════════════════════════
 function roleColor(role) {
-    return { Student: '#9f7aea', Instructor: '#4299e1', Staff: '#0d9488' }[role] || '#718096';
+    return { Student:'#9f7aea', Instructor:'#4299e1', Staff:'#0d9488' }[role] || '#718096';
 }
 function roleColorBg(role) {
-    return { Student: 'rgba(159,122,234,0.15)', Instructor: 'rgba(66,153,225,0.15)', Staff: 'rgba(13,148,136,0.15)' }[role] || 'rgba(113,128,150,0.15)';
+    return { Student:'rgba(159,122,234,0.15)', Instructor:'rgba(66,153,225,0.15)', Staff:'rgba(13,148,136,0.15)' }[role] || 'rgba(113,128,150,0.15)';
 }
 function badgeStyle(color, bg) {
     return `background:${bg};color:${color};padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;`;
@@ -1264,6 +1797,11 @@ function escHtml(str) {
     return String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { closeAssignOrgModal(); closeViewModal(); }
+});
+
 init();
 </script>
 }
+ 

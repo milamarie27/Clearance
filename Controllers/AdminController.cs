@@ -945,6 +945,102 @@ public IActionResult CreateOffering([FromBody] JsonElement body)
             catch (Exception ex) { return Ok(new { success = false, error = ex.Message }); }
         }
 
+
+
+        // ── Student Clearance Detail ───────────────────────────────────────────────
+[HttpGet("/api/admin/students/{id}/clearance")]
+public IActionResult GetStudentClearance(int id)
+{
+    try
+    {
+        using var conn = DbHelper.GetConnection(_config);
+        conn.Open();
+
+        var numCmd = new MySqlCommand(
+            "SELECT COALESCE(student_number, id_number) AS snum FROM users WHERE id=@id", conn);
+        numCmd.Parameters.AddWithValue("@id", id);
+        var snum = numCmd.ExecuteScalar()?.ToString();
+
+        var subjects = new List<object>();
+        var orgs     = new List<object>();
+
+        if (!string.IsNullOrEmpty(snum))
+        {
+            var subCmd = new MySqlCommand(@"
+                SELECT cs.subject_code,
+                       COALESCE(s.description, '—') AS description,
+                       cs.status
+                FROM   clearance_subjects cs
+                LEFT JOIN subjects s ON s.subject_code = cs.subject_code
+                WHERE  cs.student_number = @snum
+                ORDER  BY cs.subject_code", conn);
+            subCmd.Parameters.AddWithValue("@snum", snum);
+            using (var sr = subCmd.ExecuteReader())
+                while (sr.Read())
+                    subjects.Add(new {
+                        code   = sr.GetString("subject_code"),
+                        desc   = sr.IsDBNull(sr.GetOrdinal("description")) ? "—" : sr.GetString("description"),
+                        status = sr.GetString("status")
+                    });
+
+            var orgCmd = new MySqlCommand(@"
+                SELECT position, status
+                FROM   clearance_organization
+                WHERE  student_number = @snum
+                ORDER  BY position", conn);
+            orgCmd.Parameters.AddWithValue("@snum", snum);
+            using (var or2 = orgCmd.ExecuteReader())
+                while (or2.Read())
+                    orgs.Add(new {
+                        position = or2.GetString("position"),
+                        status   = or2.GetString("status")
+                    });
+        }
+
+        return Ok(new { subjects, orgs });
+    }
+    catch (Exception ex) { return Ok(new { error = ex.Message }); }
+}
+
+// ── Instructor Subject Load ────────────────────────────────────────────────
+[HttpGet("/api/admin/instructors/{id}/subjects")]
+public IActionResult GetInstructorSubjects(int id)
+{
+    var items = new List<object>();
+    try
+    {
+        using var conn = DbHelper.GetConnection(_config);
+        conn.Open();
+        var cmd = new MySqlCommand(@"
+            SELECT so.id,
+                   s.subject_code                                          AS code,
+                   COALESCE(s.description,'—')                            AS descr,
+                   COUNT(cs.id)                                           AS total,
+                   COALESCE(SUM(cs.status='Cleared'),0)                   AS approved,
+                   COALESCE(SUM(cs.status='Pending'),0)                   AS pending
+            FROM   subject_offerings so
+            JOIN   subjects s          ON s.id          = so.subject_id
+            LEFT JOIN clearance_subjects cs ON cs.subject_code = s.subject_code
+            WHERE  so.user_id = @id AND so.is_active = 1
+            GROUP  BY so.id, s.subject_code, s.description
+            ORDER  BY s.subject_code", conn);
+        cmd.Parameters.AddWithValue("@id", id);
+        using var r = cmd.ExecuteReader();
+        while (r.Read())
+            items.Add(new {
+                code     = r.GetString("code"),
+                desc     = r.GetString("descr"),
+                total    = Convert.ToInt32(r["total"]),
+                approved = Convert.ToInt32(r["approved"]),
+                pending  = Convert.ToInt32(r["pending"])
+            });
+    }
+    catch (Exception ex) { Console.WriteLine("GetInstructorSubjects error: " + ex.Message); }
+    return Ok(items);
+}
+
+
+
         // ── Form Posts ────────────────────────────────────────────────────
         [HttpPost, ValidateAntiForgeryToken]
         public IActionResult ActivateUser(int id, string role)

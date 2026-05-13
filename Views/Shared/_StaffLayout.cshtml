@@ -174,15 +174,18 @@
             <hr class="sb-divider" />
 
             <div class="sb-section">Main</div>
-            <a href="/Staff/Dashboard" class="nav-link-item @(activePage=="Dashboard"?"active":"")">
-                <i class="fas fa-th-large"></i><span>Dashboard</span>
-            </a>
-            <a href="/Staff/Signatories" class="nav-link-item @(activePage=="Signatories"?"active":"")">
-                <i class="fas fa-file-signature"></i><span>Signatories</span>
-            </a>
-            <a href="/Staff/Profile" class="nav-link-item @(activePage=="Profile"?"active":"")">
-                <i class="fas fa-user-circle"></i><span>Profile</span>
-            </a>
+                <a href="/Staff/Dashboard" class="nav-link-item @(activePage=="Dashboard"?"active":"")">
+                    <i class="fas fa-th-large"></i><span>Dashboard</span>
+                </a>
+                <a href="/Staff/Signatories" class="nav-link-item @(activePage=="Signatories"?"active":"")">
+                    <i class="fas fa-file-signature"></i><span>Signatories</span>
+                </a>
+                <a href="/Staff/SignedClearance" class="nav-link-item @(activePage=="Signed Clearance"?"active":"")">
+                    <i class="fas fa-file-signature"></i><span>Signed Clearance</span>
+                </a>
+                <a href="/Staff/Profile" class="nav-link-item @(activePage=="Profile"?"active":"")">
+                    <i class="fas fa-user-circle"></i><span>Profile</span>
+                </a>
 
             <div class="sb-footer">
                 <form asp-controller="Home" asp-action="Logout" method="post">

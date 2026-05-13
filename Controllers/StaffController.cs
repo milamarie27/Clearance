@@ -110,21 +110,75 @@ namespace OnlineClearanceSystem.Controllers
             return View(items);
         }
 
-        // ── Approve / Decline ─────────────────────────────────────────────
+        // ── Approve ───────────────────────────────────────────────────────
         [HttpPost, ValidateAntiForgeryToken]
         public IActionResult Approve(int id)
         {
+            var studentInfo = GetStudentInfoFromOrg(id);
             UpdateOrgStatus(id, "Cleared");
+            InsertSignedClearance(studentInfo, "Approved");
             TempData["SuccessMessage"] = "Student clearance approved.";
             return RedirectToAction(nameof(Signatories));
         }
 
+        // ── Decline ───────────────────────────────────────────────────────
         [HttpPost, ValidateAntiForgeryToken]
         public IActionResult Decline(int id)
         {
+            var studentInfo = GetStudentInfoFromOrg(id);
             UpdateOrgStatus(id, "Declined");
+            InsertSignedClearance(studentInfo, "Rejected");
             TempData["SuccessMessage"] = "Student clearance declined.";
             return RedirectToAction(nameof(Signatories));
+        }
+
+        // ── Signed Clearance ──────────────────────────────────────────────
+        public IActionResult SignedClearance(string filter = "all")
+        {
+            ViewData["Filter"] = filter;
+            var items = new List<StaffSignedClearance>();
+
+            try
+            {
+                using var conn = DbHelper.GetConnection(_config);
+                conn.Open();
+
+                var where = filter switch
+                {
+                    "approved" => "WHERE sc.status = 'Approved'",
+                    "rejected" => "WHERE sc.status = 'Rejected'",
+                    _          => ""
+                };
+
+                var cmd = new MySqlCommand($@"
+                    SELECT
+                        sc.student_number   AS StudentId,
+                        sc.student_name     AS StudentName,
+                        sc.course           AS StudentCourse,
+                        sc.department       AS Description,
+                        sc.status           AS Status,
+                        sc.signed_at        AS SignedAt
+                    FROM signed_clearances sc
+                    {where}
+                    ORDER BY sc.signed_at DESC", conn);
+
+                using var r = cmd.ExecuteReader();
+                while (r.Read())
+                {
+                    items.Add(new StaffSignedClearance
+                    {
+                        StudentId     = r.IsDBNull(r.GetOrdinal("StudentId"))     ? "—" : r.GetString("StudentId"),
+                        StudentName   = r.IsDBNull(r.GetOrdinal("StudentName"))   ? "—" : r.GetString("StudentName"),
+                        StudentCourse = r.IsDBNull(r.GetOrdinal("StudentCourse")) ? "—" : r.GetString("StudentCourse"),
+                        Description   = r.IsDBNull(r.GetOrdinal("Description"))   ? "—" : r.GetString("Description"),
+                        Status        = r.GetString("Status"),
+                        SignedAt      = r.GetDateTime("SignedAt")
+                    });
+                }
+            }
+            catch { }
+
+            return View(items);
         }
 
         // ── Profile GET ───────────────────────────────────────────────────
@@ -270,6 +324,62 @@ namespace OnlineClearanceSystem.Controllers
                     Date    = r.GetDateTime("created_at").ToString("MMMM d, yyyy")
                 });
             }
+        }
+
+        private (string studentNumber, string studentName, string course, string department) GetStudentInfoFromOrg(int id)
+        {
+            try
+            {
+                using var conn = DbHelper.GetConnection(_config);
+                conn.Open();
+
+                var cmd = new MySqlCommand(@"
+                    SELECT
+                        stu.student_number,
+                        CONCAT(stu.first_name, ' ', stu.last_name) AS student_name,
+                        COALESCE(CONCAT(c.course_code, '-', cu.year_level, cu.section), '—') AS course,
+                        co.position AS department
+                    FROM clearance_organization co
+                    JOIN users       stu ON stu.student_number = co.student_number
+                    LEFT JOIN curriculum cu ON cu.id = stu.curriculum_id
+                    LEFT JOIN courses    c  ON c.id  = cu.course_id
+                    WHERE co.id = @id LIMIT 1", conn);
+                cmd.Parameters.AddWithValue("@id", id);
+
+                using var r = cmd.ExecuteReader();
+                if (r.Read())
+                    return (
+                        r.IsDBNull(0) ? "" : r.GetString(0),
+                        r.IsDBNull(1) ? "" : r.GetString(1),
+                        r.IsDBNull(2) ? "" : r.GetString(2),
+                        r.IsDBNull(3) ? "" : r.GetString(3)
+                    );
+            }
+            catch { }
+
+            return ("", "", "", "");
+        }
+
+        private void InsertSignedClearance((string studentNumber, string studentName, string course, string department) info, string status)
+        {
+            try
+            {
+                using var conn = DbHelper.GetConnection(_config);
+                conn.Open();
+
+                var cmd = new MySqlCommand(@"
+                    INSERT INTO signed_clearances
+                        (student_number, student_name, course, department, status, signed_at)
+                    VALUES
+                        (@sn, @name, @course, @dept, @status, NOW())", conn);
+                cmd.Parameters.AddWithValue("@sn",     info.studentNumber);
+                cmd.Parameters.AddWithValue("@name",   info.studentName);
+                cmd.Parameters.AddWithValue("@course", info.course);
+                cmd.Parameters.AddWithValue("@dept",   info.department);
+                cmd.Parameters.AddWithValue("@status", status);
+                cmd.ExecuteNonQuery();
+            }
+            catch { }
         }
     }
 }
