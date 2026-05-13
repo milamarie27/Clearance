@@ -399,40 +399,45 @@ namespace OnlineClearanceSystem.Controllers
         }
 
         [HttpPost("/api/admin/subject-offerings")]
-        public IActionResult CreateOffering([FromBody] JsonElement body)
-        {
-            try
-            {
-                var mis = body.GetProperty("mis").GetString() ?? "";
-                var instructorId = body.GetProperty("inst").GetInt32();
-                if (instructorId == 0) return Ok(new { success = false, error = "Invalid instructor selected." });
-                using var conn = DbHelper.GetConnection(_config);
-                conn.Open();
-                var periodId = Convert.ToInt32(new MySqlCommand("SELECT id FROM academic_periods WHERE is_active=1 LIMIT 1", conn).ExecuteScalar() ?? 0);
-                if (periodId == 0) return Ok(new { success = false, error = "No active academic period." });
-                var subjectCmd = new MySqlCommand("SELECT id FROM subjects WHERE mis_code=@mis LIMIT 1", conn);
-                subjectCmd.Parameters.AddWithValue("@mis", mis);
-                var subjectId = Convert.ToInt32(subjectCmd.ExecuteScalar() ?? 0);
-                if (subjectId == 0) return Ok(new { success = false, error = "Subject not found." });
-                var checkCmd = new MySqlCommand("SELECT id FROM subject_offerings WHERE mis_code=@mis LIMIT 1", conn);
-                checkCmd.Parameters.AddWithValue("@mis", mis);
-                if (checkCmd.ExecuteScalar() != null)
-                {
-                    var upd = new MySqlCommand("UPDATE subject_offerings SET subject_id=@sid, user_id=@uid, period_id=@pid, is_active=1 WHERE mis_code=@mis", conn);
-                    upd.Parameters.AddWithValue("@sid", subjectId); upd.Parameters.AddWithValue("@uid", instructorId); upd.Parameters.AddWithValue("@pid", periodId); upd.Parameters.AddWithValue("@mis", mis);
-                    upd.ExecuteNonQuery();
-                }
-                else
-                {
-                    var ins = new MySqlCommand("INSERT INTO subject_offerings (mis_code, subject_id, user_id, period_id, is_active) VALUES (@mis, @sid, @uid, @pid, 1)", conn);
-                    ins.Parameters.AddWithValue("@mis", mis); ins.Parameters.AddWithValue("@sid", subjectId); ins.Parameters.AddWithValue("@uid", instructorId); ins.Parameters.AddWithValue("@pid", periodId);
-                    ins.ExecuteNonQuery();
-                }
-                return Ok(new { success = true });
-            }
-            catch (Exception ex) { return Ok(new { success = false, error = ex.Message }); }
-        }
+public IActionResult CreateOffering([FromBody] JsonElement body)
+{
+    try
+    {
+        var mis          = body.GetProperty("mis").GetString() ?? "";
+        var instructorId = body.GetProperty("inst").GetInt32();
+        if (instructorId == 0) return Ok(new { success = false, error = "Invalid instructor selected." });
 
+        using var conn = DbHelper.GetConnection(_config);
+        conn.Open();
+
+        var subjectCmd = new MySqlCommand("SELECT id FROM subjects WHERE mis_code=@mis LIMIT 1", conn);
+        subjectCmd.Parameters.AddWithValue("@mis", mis);
+        var subjectId = Convert.ToInt32(subjectCmd.ExecuteScalar() ?? 0);
+        if (subjectId == 0) return Ok(new { success = false, error = "Subject not found." });
+
+        var checkCmd = new MySqlCommand("SELECT id FROM subject_offerings WHERE subject_id=@sid LIMIT 1", conn);
+        checkCmd.Parameters.AddWithValue("@sid", subjectId);
+        var existingId = checkCmd.ExecuteScalar();
+
+        if (existingId != null)
+        {
+            var upd = new MySqlCommand("UPDATE subject_offerings SET user_id=@uid, is_active=1 WHERE subject_id=@sid2", conn);
+            upd.Parameters.AddWithValue("@uid",  instructorId);
+            upd.Parameters.AddWithValue("@sid2", subjectId);
+            upd.ExecuteNonQuery();
+        }
+        else
+        {
+            var ins = new MySqlCommand("INSERT INTO subject_offerings (mis_code, subject_id, user_id, is_active) VALUES (@mis2, @sid3, @uid2, 1)", conn);
+            ins.Parameters.AddWithValue("@mis2", mis);
+            ins.Parameters.AddWithValue("@sid3", subjectId);
+            ins.Parameters.AddWithValue("@uid2", instructorId);
+            ins.ExecuteNonQuery();
+        }
+        return Ok(new { success = true });
+    }
+    catch (Exception ex) { return Ok(new { success = false, error = ex.Message }); }
+}
         [HttpPut("/api/admin/subject-offerings/{id}")]
         public IActionResult UpdateOffering(int id, [FromBody] JsonElement body)
         {

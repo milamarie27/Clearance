@@ -216,8 +216,6 @@
 
     <!-- RIGHT -->
     <div class="auth-right">
-        <a href="/Home/Login" class="back-link">← Back to Login</a>
-
         <div class="auth-title">Create Account</div>
         <p class="auth-sub">Fill in your information below to register.</p>
 
@@ -241,7 +239,7 @@
                             🔐 Login Credentials
                         </div>
                         <div class="row g-2">
-                            <div class="col-12">
+                            <div class="col-md-6">
                                 <label class="form-label-sm">ID Number <span class="req">*</span></label>
                                 <input asp-for="IdNumber" class="form-input"
                                        placeholder="e.g. 2024-00001" autofocus/>
@@ -252,12 +250,6 @@
                                 <input asp-for="Password" class="form-input" type="password"
                                        placeholder="Min. 6 characters" autocomplete="new-password"/>
                                 <span asp-validation-for="Password" class="field-error"></span>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label-sm">Confirm Password <span class="req">*</span></label>
-                                <input asp-for="ConfirmPassword" class="form-input" type="password"
-                                       placeholder="Repeat password" id="cpw" autocomplete="new-password"/>
-                                <span asp-validation-for="ConfirmPassword" class="field-error"></span>
                             </div>
                         </div>
                     </div>
@@ -306,8 +298,12 @@
 
                 <div class="col-12">
                     <label class="form-label-sm">Course</label>
-                    <input asp-for="Course" class="form-input"
-                           placeholder="e.g. BSIT, BSED, BSHM"/>
+                    <select asp-for="Course"
+                            asp-items="Model.CourseOptions"
+                            class="form-input"
+                            id="courseSelect">
+                        <option value="">— Select course —</option>
+                    </select>
                     <span asp-validation-for="Course" class="field-error"></span>
                 </div>
 
@@ -319,18 +315,17 @@
                         <option value="2">2nd Year</option>
                         <option value="3">3rd Year</option>
                         <option value="4">4th Year</option>
-                        <option value="5">5th Year</option>
                     </select>
                     <span asp-validation-for="YearLevel" class="field-error"></span>
                 </div>
 
                 <div class="col-md-6">
                     <label class="form-label-sm">Section</label>
-                    <input asp-for="Section" class="form-input"
-                           placeholder="e.g. A, B, BSIT-3A"/>
+                    <select asp-for="Section" class="form-input" id="sectionSelect">
+                        <option value="">— Select a course first —</option>
+                    </select>
                     <span asp-validation-for="Section" class="field-error"></span>
                 </div>
-
             </div>
 
             <button type="submit" class="btn-register">Register Account</button>
@@ -354,6 +349,50 @@ document.querySelector('form').addEventListener('submit', function(e) {
         e.preventDefault();
     } else if (cpw) {
         cpw.style.borderColor = '';
+    }
+});
+
+document.getElementById('courseSelect').addEventListener('change', async function () {
+    const courseId = this.value;
+    const sectionSelect = document.getElementById('sectionSelect');
+
+    sectionSelect.innerHTML = '<option value="">— Loading... —</option>';
+
+    if (!courseId) {
+        sectionSelect.innerHTML = '<option value="">— Select a course first —</option>';
+        return;
+    }
+
+    try {
+        const res      = await fetch(`/Home/GetSections?courseId=${courseId}`);
+        const sections = await res.json();
+
+        sectionSelect.innerHTML = '<option value="">— Select section —</option>';
+
+        if (sections.length === 0) {
+            sectionSelect.innerHTML = '<option value="">— No sections found —</option>';
+            return;
+        }
+
+        sections.forEach(s => {
+            const opt = document.createElement('option');
+            opt.value = s.value;
+            opt.textContent = s.text;
+            opt.dataset.yearLevel = s.yearLevel;  // ← carry year level
+            sectionSelect.appendChild(opt);
+        });
+
+    } catch {
+        sectionSelect.innerHTML = '<option value="">— Error loading sections —</option>';
+    }
+});
+
+// Auto-fill Year Level when section is picked
+document.getElementById('sectionSelect').addEventListener('change', function () {
+    const selected = this.options[this.selectedIndex];
+    const yearLevel = selected?.dataset?.yearLevel;
+    if (yearLevel) {
+        document.querySelector('select[name="YearLevel"]').value = yearLevel;
     }
 });
 </script>

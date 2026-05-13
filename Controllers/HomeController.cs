@@ -5,6 +5,7 @@ using System.Security.Claims;
 using MySql.Data.MySqlClient;
 using OnlineClearanceSystem.Models;
 using OnlineClearanceSystem.Data;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace OnlineClearanceSystem.Controllers
 {
@@ -117,6 +118,20 @@ namespace OnlineClearanceSystem.Controllers
             }
         }
 
+        // ── Helper: load courses from DB ──────────────────────────
+        private List<SelectListItem> LoadCourseOptions()
+        {
+            var list = new List<SelectListItem>();
+            using var conn = DbHelper.GetConnection(_config);
+            conn.Open();
+            var cmd = new MySqlCommand(
+                "SELECT id, course_name FROM courses WHERE is_active = 1 ORDER BY course_name", conn);
+            using var r = cmd.ExecuteReader();
+            while (r.Read())
+                list.Add(new SelectListItem(r.GetString("course_name"), r.GetInt32("id").ToString()));
+            return list;
+        }
+
         // ── GET /Home/Register ─────────────────────────────────
         [HttpGet]
         public IActionResult Register()
@@ -124,7 +139,11 @@ namespace OnlineClearanceSystem.Controllers
             if (User.Identity?.IsAuthenticated == true)
                 return RedirectBasedOnRole();
 
-            return View(new RegisterViewModel());
+            var model = new RegisterViewModel
+            {
+                CourseOptions = LoadCourseOptions()   // ← load courses
+            };
+            return View(model);
         }
 
         // ── POST /Home/Register ────────────────────────────────
@@ -201,6 +220,25 @@ namespace OnlineClearanceSystem.Controllers
                 ViewBag.ErrorMessage = "Error saving account: " + ex.Message;
                 return View(model);
             }
+        }
+
+        [HttpGet]
+        public IActionResult GetSections(int courseId)
+        {
+            var list = new List<object>();
+            using var conn = DbHelper.GetConnection(_config);
+            conn.Open();
+            var cmd = new MySqlCommand(
+                "SELECT id, section_name, year_level FROM sections WHERE course_id = @cid AND is_active = 1 ORDER BY section_name", conn);
+            cmd.Parameters.AddWithValue("@cid", courseId);
+            using var r = cmd.ExecuteReader();
+            while (r.Read())
+                list.Add(new {
+                    value     = r.GetInt32("id").ToString(),
+                    text      = r.GetString("section_name"),
+                    yearLevel = r.IsDBNull(r.GetOrdinal("year_level")) ? "" : r.GetInt32("year_level").ToString()
+                });
+            return Json(list);
         }
 
         // ── POST /Home/Logout ──────────────────────────────────

@@ -224,26 +224,45 @@ let assignMode     = null;  // 'instructor' | 'staff' | null
 //  INIT
 // ══════════════════════════════════════════════════════════════════════════════
 async function init() {
-    await Promise.all([
-        loadStudents(),
-        loadInstructors(),
-        loadStaff(),
-        loadOrgSignatories(),
-        loadStuSignatories(),
-        loadStaffPositions(),
-        loadCurriculums()
-    ]);
-    updateStats();
-    render();
-    populateStudentDropdown();
+    try {
+        await Promise.all([
+            loadStudents(),
+            loadInstructors(),
+            loadStaff(),
+            loadOrgSignatories(),
+            loadStuSignatories(),
+            loadStaffPositions(),
+            loadCurriculums()
+        ]);
+        console.log('All loaded:', students.length, instructors.length, staffList.length);
+        updateStats();
+        console.log('Stats updated');
+        render();
+        console.log('Rendered');
+        populateStudentDropdown();
+    } catch(e) {
+        console.error('INIT FAILED:', e);
+    }
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
 //  LOADERS
 // ══════════════════════════════════════════════════════════════════════════════
 async function loadStudents() {
-    try { const r = await fetch('/api/admin/students'); students = await r.json(); } catch {}
-    if (!Array.isArray(students)) students = [];
+    try {
+        const r = await fetch('/api/admin/students');
+        const d = await r.json();
+        console.log('loadStudents response:', d); // ADD THIS
+        if (!Array.isArray(d)) {
+            console.error('GetStudents error:', d?.error ?? d);
+            students = [];
+            return;
+        }
+        students = d;
+    } catch (e) {
+        console.error('loadStudents fetch error:', e);
+        students = [];
+    }
 }
 async function loadInstructors() {
     try { const r = await fetch('/api/admin/instructors'); instructors = await r.json(); } catch {}
@@ -324,6 +343,10 @@ function render() {
 // ══════════════════════════════════════════════════════════════════════════════
 function renderAllTable() {
     const panel = document.getElementById('main-panel');
+
+     // DEBUG: remove after fix
+    console.log('students:', students.length, 'instructors:', instructors.length, 'staff:', staffList.length);
+
     const rows  = [
         ...students.map(s => ({
             role: 'Student', name: s.name, id: s.idNum || '—',
@@ -607,8 +630,8 @@ function renderStaffTable() {
                                     ? `<span style="${badgeStyle('#0d9488','rgba(13,148,136,0.15)')};">${escHtml(s.posLabel)}</span>`
                                     : `<span style="color:var(--muted);font-size:12px;">—</span>`}
                             </td>
-                            <td><span style="${badgeStyle('#68d391','rgba(56,161,105,0.15)');}">${s.approved}</span></td>
-                            <td><span style="${badgeStyle('#f6e05e','rgba(236,201,75,0.15)');}">${s.pending}</span></td>
+                            <td><span style="${badgeStyle('#68d391','rgba(56,161,105,0.15)')}">${s.approved}</span></td>
+                            <td><span style="${badgeStyle('#f6e05e','rgba(236,201,75,0.15)')}">${s.pending}</span></td>
                             <td><span style="${badgeStyle('#38a169','rgba(56,161,105,0.15)')}">Active</span></td>
                         </tr>`).join('')}
                 </tbody>
