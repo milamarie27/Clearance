@@ -27,10 +27,6 @@
     </div>
 }
 
-<div class="d-flex align-items-center justify-content-between mb-3">
-    <h5 class="fw-bold mb-0" style="color:#1a1a2e;"></h5>
-</div>
-
 <div class="page-card">
     <div class="page-card-hd dark">
         <i class="fas fa-clipboard-check me-2"></i>Pending Requests
@@ -50,6 +46,7 @@
                     <th>DESCRIPTION</th>
                     <th>REQUESTED BY</th>
                     <th style="text-align:center;">ACTION</th>
+                    <th style="text-align:center;">CHAT</th>
                 </tr>
             </thead>
             <tbody>
@@ -87,13 +84,20 @@
                                     </form>
                                 </div>
                             </td>
+                            <td style="text-align:center;">
+                                <button class="chat-icon-btn"
+                                        onclick="openChat('@item.StudentNumber', '@Html.Raw(item.StudentName)', '@item.SubjectCode')"
+                                        title="Message @item.StudentName">
+                                    <i class="fas fa-comment-dots"></i>
+                                </button>
+                            </td>
                         </tr>
                     }
                 }
                 else
                 {
                     <tr>
-                        <td colspan="5" style="padding:40px;text-align:center;color:#888;">
+                        <td colspan="6" style="padding:40px;text-align:center;color:#888;">
                             <i class="fas fa-clipboard-check"
                                style="font-size:28px;color:#ddd;display:block;margin-bottom:10px;"></i>
                             No pending clearance requests.
@@ -105,34 +109,231 @@
     </div>
 </div>
 
+@* ── CHAT OVERLAY ── *@
+<div id="chat-overlay" onclick="closeChat()"
+     style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:1040;"></div>
+
+@* ── CHAT MODAL ── *@
+<div id="chat-modal"
+     style="display:none;position:fixed;bottom:0;right:24px;width:360px;height:520px;
+            background:white;border-radius:16px 16px 0 0;
+            box-shadow:0 -4px 40px rgba(0,0,0,0.18);z-index:1050;
+            flex-direction:column;overflow:hidden;">
+
+    <!-- HEADER -->
+    <div style="background:#1a4731;padding:14px 16px;
+                display:flex;align-items:center;gap:10px;flex-shrink:0;">
+        <div id="chat-avatar"
+             style="width:38px;height:38px;border-radius:50%;
+                    background:rgba(255,255,255,0.2);display:flex;align-items:center;
+                    justify-content:center;font-size:15px;font-weight:700;
+                    color:white;flex-shrink:0;"></div>
+        <div style="flex:1;min-width:0;">
+            <div id="chat-name"
+                 style="font-size:13px;font-weight:700;color:white;
+                        white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
+            <div id="chat-subject"
+                 style="font-size:11px;color:rgba(255,255,255,0.65);margin-top:1px;"></div>
+        </div>
+        <button onclick="closeChat()"
+                style="background:none;border:none;color:rgba(255,255,255,0.7);
+                       font-size:16px;cursor:pointer;padding:4px;line-height:1;">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+
+    <!-- MESSAGES -->
+    <div id="chat-messages"
+         style="flex:1;overflow-y:auto;padding:16px;
+                display:flex;flex-direction:column;gap:10px;background:#f7f8fa;">
+    </div>
+
+    <!-- INPUT -->
+    <div style="padding:12px 14px;border-top:1px solid #e2e8f0;background:white;
+                display:flex;align-items:center;gap:8px;flex-shrink:0;">
+        <input id="chat-input" type="text" placeholder="Type a message…"
+               style="flex:1;border:1px solid #d1d5db;border-radius:22px;
+                      padding:9px 14px;font-size:13px;outline:none;
+                      font-family:inherit;background:#f7f8fa;"
+               onkeydown="if(event.key==='Enter')sendChatMessage()" />
+        <button onclick="sendChatMessage()"
+                style="width:38px;height:38px;border-radius:50%;border:none;
+                       background:#1a4731;color:white;font-size:14px;cursor:pointer;
+                       display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <i class="fas fa-paper-plane"></i>
+        </button>
+    </div>
+</div>
+
 @section Styles {
 <style>
     .btn-approve {
-        background: #2e7d32;
-        color: #fff;
-        border: none;
-        border-radius: 7px;
-        padding: 6px 14px;
-        font-size: 12px;
-        font-weight: 700;
-        cursor: pointer;
-        font-family: inherit;
-        transition: opacity .2s;
+        background: #2e7d32; color: #fff; border: none; border-radius: 7px;
+        padding: 6px 14px; font-size: 12px; font-weight: 700;
+        cursor: pointer; font-family: inherit; transition: opacity .2s;
     }
     .btn-approve:hover { opacity: .85; }
 
     .btn-decline {
-        background: #c62828;
-        color: #fff;
-        border: none;
-        border-radius: 7px;
-        padding: 6px 14px;
-        font-size: 12px;
-        font-weight: 700;
-        cursor: pointer;
-        font-family: inherit;
-        transition: opacity .2s;
+        background: #c62828; color: #fff; border: none; border-radius: 7px;
+        padding: 6px 14px; font-size: 12px; font-weight: 700;
+        cursor: pointer; font-family: inherit; transition: opacity .2s;
     }
     .btn-decline:hover { opacity: .85; }
+
+    /* ── Chat icon button ── */
+    .chat-icon-btn {
+        width: 34px; height: 34px; border-radius: 50%; border: none;
+        background: #e8f5e9; color: #1a4731; font-size: 15px; cursor: pointer;
+        display: inline-flex; align-items: center; justify-content: center;
+        transition: background 0.2s, transform 0.15s;
+    }
+    .chat-icon-btn:hover { background: #c8e6c9; transform: scale(1.1); }
+
+    /* ── Chat bubbles ── */
+    .chat-bubble-wrap { display: flex; flex-direction: column; max-width: 78%; }
+    .chat-bubble-wrap.mine   { align-self: flex-end;   align-items: flex-end; }
+    .chat-bubble-wrap.theirs { align-self: flex-start; align-items: flex-start; }
+    .chat-bubble {
+        padding: 9px 13px; border-radius: 18px; font-size: 13px;
+        line-height: 1.5; word-break: break-word;
+    }
+    .chat-bubble.mine   { background: #1a4731; color: white; border-bottom-right-radius: 4px; }
+    .chat-bubble.theirs { background: white; color: #1a1a2e; border: 1px solid #e2e8f0; border-bottom-left-radius: 4px; }
+    .chat-time        { font-size: 10px; color: #aaa; margin-top: 3px; padding: 0 4px; }
+    .chat-sender-name { font-size: 10px; font-weight: 700; color: #1a4731; margin-bottom: 3px; padding: 0 4px; }
+    .chat-date-divider {
+        text-align: center; font-size: 10px; color: #aaa; margin: 6px 0; position: relative;
+    }
+    .chat-date-divider::before, .chat-date-divider::after {
+        content: ''; position: absolute; top: 50%; width: 30%; height: 1px; background: #e2e8f0;
+    }
+    .chat-date-divider::before { left: 0; }
+    .chat-date-divider::after  { right: 0; }
 </style>
+}
+
+@section Scripts {
+<script>
+    const _csrf = document.querySelector('input[name="__RequestVerificationToken"]')?.value ?? '';
+
+    let currentChatKey  = null;
+    let currentChatName = null;
+    let chatStore       = {};
+
+    function getInitials(name) {
+        return (name ?? '').split(' ').filter(Boolean).map(w => w[0]).join('').slice(0, 2).toUpperCase();
+    }
+
+    function fmtTime(d) {
+        return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function escHtml(str) {
+        return String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    function openChat(studentNumber, studentName, subjectCode) {
+        currentChatKey  = studentNumber + '_' + subjectCode;
+        currentChatName = studentName;
+
+        document.getElementById('chat-name').textContent    = studentName;
+        document.getElementById('chat-subject').textContent = subjectCode;
+        document.getElementById('chat-avatar').textContent  = getInitials(studentName);
+
+        const modal   = document.getElementById('chat-modal');
+        const overlay = document.getElementById('chat-overlay');
+        modal.style.display   = 'flex';
+        overlay.style.display = 'block';
+
+        renderMessages();
+        setTimeout(() => document.getElementById('chat-input').focus(), 80);
+    }
+
+    function closeChat() {
+        document.getElementById('chat-modal').style.display   = 'none';
+        document.getElementById('chat-overlay').style.display = 'none';
+        currentChatKey = null;
+    }
+
+    function renderMessages() {
+        const box  = document.getElementById('chat-messages');
+        const msgs = chatStore[currentChatKey] ?? [];
+        box.innerHTML = '';
+
+        if (!msgs.length) {
+            box.innerHTML = `
+                <div style="text-align:center;margin:auto;">
+                    <div style="font-size:32px;margin-bottom:10px;">💬</div>
+                    <div style="font-size:13px;font-weight:700;color:#1a1a2e;margin-bottom:4px;">
+                        Start the conversation
+                    </div>
+                    <div style="font-size:12px;color:#aaa;max-width:220px;margin:0 auto;line-height:1.6;">
+                        Send a message to <strong>${escHtml(currentChatName)}</strong> about their clearance.
+                    </div>
+                </div>`;
+            return;
+        }
+
+        let lastDate = null;
+        msgs.forEach(m => {
+            const d       = new Date(m.time);
+            const dateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+            if (dateStr !== lastDate) {
+                const div = document.createElement('div');
+                div.className   = 'chat-date-divider';
+                div.textContent = dateStr;
+                box.appendChild(div);
+                lastDate = dateStr;
+            }
+
+            const wrap = document.createElement('div');
+            wrap.className = 'chat-bubble-wrap ' + (m.mine ? 'mine' : 'theirs');
+
+            if (!m.mine) {
+                const sn = document.createElement('div');
+                sn.className   = 'chat-sender-name';
+                sn.textContent = currentChatName;
+                wrap.appendChild(sn);
+            }
+
+            const bubble = document.createElement('div');
+            bubble.className   = 'chat-bubble ' + (m.mine ? 'mine' : 'theirs');
+            bubble.textContent = m.text;
+            wrap.appendChild(bubble);
+
+            const time = document.createElement('div');
+            time.className   = 'chat-time';
+            time.textContent = fmtTime(d);
+            wrap.appendChild(time);
+
+            box.appendChild(wrap);
+        });
+
+        box.scrollTop = box.scrollHeight;
+    }
+
+    function sendChatMessage() {
+        const input = document.getElementById('chat-input');
+        const text  = input.value.trim();
+        if (!text || !currentChatKey) return;
+
+        if (!chatStore[currentChatKey]) chatStore[currentChatKey] = [];
+        chatStore[currentChatKey].push({ mine: true, text, time: new Date().toISOString() });
+        input.value = '';
+        renderMessages();
+
+        fetch('/Instructor/SendClearanceMessage', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': _csrf },
+            body:    JSON.stringify({ recipientKey: currentChatKey, message: text })
+        })
+        .then(r => r.json())
+        .then(d => { if (!d.success) console.warn('Message send failed:', d.error); })
+        .catch(err => console.warn('Chat error:', err));
+    }
+
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeChat(); });
+</script>
 }
